@@ -140,14 +140,14 @@ export default function Queues() {
               </table>
             `;
       })()}
-          <${Pagination}
+        </div>
+        <${Pagination}
             page=${page.value}
             totalPages=${data.value.totalPages}
             prevPage=${prevQueuePage}
             nextPage=${nextQueuePage}
             goPage=${goQueuePage}
           />
-        </div>
       `}
       ${data.value && data.value.items && data.value.items.length === 0 && html`<p>No queues found.</p>`}
       ${!data.value && html`<p>No queues data. Select a vhost and refresh.</p>`}
