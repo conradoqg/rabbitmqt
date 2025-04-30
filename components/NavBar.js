@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
+import { url, username, password, fetchData } from '../store.js';
 
-export default function NavBar({ url, username, password, onConnect }) {
+export default function NavBar() {
   return html`
     <nav class="navbar is-light" role="navigation" aria-label="main navigation">
       <div class="navbar-brand">
@@ -53,7 +54,7 @@ export default function NavBar({ url, username, password, onConnect }) {
             />
           </div>
           <div class="navbar-item">
-            <button class="button is-primary" onClick=${onConnect}>Connect</button>
+            <button class="button is-primary" onClick=${fetchData}>Connect</button>
           </div>
         </div>
       </div>

@@ -1,10 +1,13 @@
 import { html } from 'htm/preact';
+import { overview, fetchData } from '../store.js';
 
-export default function Overview({ loading, error, overviewData }) {
-  const data = overviewData.value;
+export default function Overview() {
+  const { loading, error } = overview;
+  const data = overview.data.value;
   return html`
     <div>
       <h1 class="title">Overview</h1>
+      <button class="button is-small is-primary ${loading.value ? 'is-loading' : ''}" onClick=${fetchData} disabled=${loading.value}>Refresh</button>
       ${loading.value && html`<p>Loading...</p>`}
       ${error.value && html`<p class="has-text-danger">${error.value}</p>`}
       ${!loading.value && !error.value && data && html`
@@ -29,7 +32,7 @@ export default function Overview({ loading, error, overviewData }) {
           </div>
         </div>
         <div class="columns">
-          ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
+        ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
             <div class="column has-text-centered">
               <p class="title is-4">${val}</p>
               <p class="subtitle is-6">${key.charAt(0).toUpperCase() + key.slice(1)}</p>
@@ -93,11 +96,12 @@ export default function Overview({ loading, error, overviewData }) {
         </table>
 
         <!-- Exchange Types -->
+        ${data.exchange_types?.length > 0 && html`
         <h2 class="subtitle">Exchange Types</h2>
         <table class="table is-fullwidth is-striped is-size-7">
           <thead><tr><th>Name</th><th>Description</th><th>Enabled</th><th>Purpose</th></tr></thead>
           <tbody>
-            ${data.exchange_types.map(ex => html`
+            ${data.exchange_types?.map(ex => html`
               <tr>
                 <td>${ex.name}</td>
                 <td>${ex.description}</td>
@@ -107,6 +111,7 @@ export default function Overview({ loading, error, overviewData }) {
             `)}
           </tbody>
         </table>
+        `}
 
         <!-- Message Stats -->
         <h2 class="subtitle">Message Stats</h2>
@@ -134,12 +139,12 @@ export default function Overview({ loading, error, overviewData }) {
           </tbody>
         </table>
 
-        <!-- Listeners -->
+        ${data.listeners?.length > 0 && html`
         <h2 class="subtitle">Listeners</h2>
         <table class="table is-fullwidth is-striped is-size-7">
           <thead><tr><th>Node</th><th>Protocol</th><th>IP Address</th><th>Port</th></tr></thead>
           <tbody>
-            ${data.listeners.map(l => html`
+            ${data.listeners?.map(l => html`
               <tr>
                 <td>${l.node}</td>
                 <td>${l.protocol}</td>
@@ -149,6 +154,7 @@ export default function Overview({ loading, error, overviewData }) {
             `)}
           </tbody>
         </table>
+        `}
       `}
       ${!loading.value && !error.value && !data && html`<p>No overview data. Click Connect.</p>`}
     </div>
