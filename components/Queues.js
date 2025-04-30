@@ -1,56 +1,77 @@
 import { html } from 'htm/preact';
 import Pagination from './Pagination.js';
 
-export default function Queues({ loading, error, queuesData, queueSortField, queueSortDir, changeSort, prevPage, nextPage, goPage }) {
+export default function Queues({ loading, error, queuesData, queueSortField, queueSortDir, changeSort, prevPage, nextPage, goPage, vhosts, selectedVhost, onVhostChange, onRefresh }) {
 
   return html`
     <div>
       <h1 class="title">Queues</h1>
-      ${loading.value && html`<p>Loading...</p>`}
-      ${error.value && html`<p class="has-text-danger">${error.value}</p>`}
-      ${!loading.value && !error.value && queuesData.value && queuesData.value.items && queuesData.value.items.length > 0 && html`
-        <div class="table-container">
-          <table class="table is-fullwidth is-striped is-hoverable is-narrow is-size-7">
-            <thead>
-              <tr>
-                <th onClick=${() => changeSort('name')} style="cursor:pointer;">Name ${queueSortField.value==='name' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('vhost')} style="cursor:pointer;">VHost ${queueSortField.value==='vhost' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('messages')} style="cursor:pointer;">Total ${queueSortField.value==='messages' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('ready')} style="cursor:pointer;">Ready ${queueSortField.value==='ready' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('unack')} style="cursor:pointer;">Unacked ${queueSortField.value==='unack' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('rate')} style="cursor:pointer;">Rate ${queueSortField.value==='rate' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('consumers')} style="cursor:pointer;">Consumers ${queueSortField.value==='consumers' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('memory')} style="cursor:pointer;">Memory ${queueSortField.value==='memory' ? (queueSortDir.value==='asc'?'▲':'▼') : ''}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${queuesData.value.items.map(q => html`
-                <tr>
-                  <td>${q.name}</td>
-                  <td>${q.vhost}</td>
-                  <td>${q.messages}</td>
-                  <td>${q.messages_ready}</td>
-                  <td>${q.messages_unacknowledged}</td>
-                  <td>${q.message_stats && q.message_stats.deliver_details
-                      ? q.message_stats.deliver_details.rate.toFixed(2)
-                      : (q.messages_details ? q.messages_details.rate.toFixed(2) : '0')}</td>
-                  <td>${q.consumers}</td>
-                  <td>${(q.memory / 1024).toFixed(1)} KB</td>
-                </tr>
-              `)}
-            </tbody>
-          </table>
+      <div class="field">
+        <label class="label">VHost</label>
+        <div class="control">
+          <div class="select">
+            <select value=${selectedVhost.value} onChange=${e => onVhostChange(e.target.value)}>
+              <option value="all">All</option>
+              ${vhosts.value.map(vh => html`<option value=${vh}>${vh}</option>`)}
+            </select>
+          </div>
         </div>
-        <${Pagination}
-          page=${queuesData.value.page}
-          totalPages=${queuesData.value.totalPages}
-          prevPage=${prevPage}
-          nextPage=${nextPage}
-          goPage=${goPage}
-        />
+      </div>
+      <div class="level">
+        <div class="level-left"></div>
+        <div class="level-right">
+          <div class="level-item">
+            <button
+              class="button is-small is-primary ${loading.value ? 'is-loading' : ''}"
+              onClick=${onRefresh}
+              disabled=${loading.value}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+      ${error.value && html`<p class="has-text-danger">${error.value}</p>`}
+      ${queuesData.value && queuesData.value.items && queuesData.value.items.length > 0 && html`
+        <div class="table-container">
+          ${(() => {
+            const items = queuesData.value.items;
+            const keySet = new Set();
+            items.forEach(item => Object.keys(item).forEach(k => keySet.add(k)));
+            const keys = Array.from(keySet).sort((a, b) => a.localeCompare(b));
+            const renderValue = val => {
+              if (val == null) return '';
+              if (typeof val === 'boolean') return val ? '✔' : '';
+              if (typeof val === 'object') return JSON.stringify(val);
+              return String(val);
+            };
+            return html`
+              <table class="table is-fullwidth is-striped is-hoverable is-narrow">
+                <thead>
+                  <tr>
+                    ${keys.map(key => {
+                      const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      return html`<th onClick=${() => changeSort(key)} style="cursor:pointer;">${label} ${queueSortField.value === key ? (queueSortDir.value === 'asc' ? '▲' : '▼') : ''}</th>`;
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items.map(item => html`<tr>${keys.map(key => html`<td>${renderValue(item[key])}</td>`)}</tr>`)}
+                </tbody>
+              </table>
+            `;
+          })()}
+          <${Pagination}
+            page=${queuesData.value.page}
+            totalPages=${queuesData.value.totalPages}
+            prevPage=${prevPage}
+            nextPage=${nextPage}
+            goPage=${goPage}
+          />
+        </div>
       `}
-      ${!loading.value && !error.value && queuesData.value && queuesData.value.items && queuesData.value.items.length === 0 && html`<p>No queues found.</p>`}
-      ${!loading.value && !error.value && !queuesData.value && html`<p>No queues data. Click Connect.</p>`}
+      ${queuesData.value && queuesData.value.items && queuesData.value.items.length === 0 && html`<p>No queues found.</p>`}
+      ${!queuesData.value && html`<p>No queues data. Select a vhost and refresh.</p>`}
     </div>
   `;
 }

@@ -18,13 +18,23 @@ export default function App() {
   const error = useSignal(null);
   // Pagination and sorting for queues
   const queuePage = useSignal(1);
-  const queueSortField = useSignal('rate');
-  const queueSortDir = useSignal('desc');
+  // Default sort field for queues: Name
+  const queueSortField = useSignal('name');
+  const queueSortDir = useSignal('asc');
   // Pagination and sorting for exchanges
   const exchangePage = useSignal(1);
   const exchangeSortField = useSignal('name');
   const exchangeSortDir = useSignal('asc');
   const pageSize = 10;
+  // VHosts list and selected filters
+  const vhosts = useSignal([]);
+  const selectedExchangeVhost = useSignal('all');
+  const selectedQueueVhost = useSignal('all');
+  // Separate loading/error for exchanges and queues
+  const exchangeLoading = useSignal(false);
+  const exchangeError = useSignal(null);
+  const queueLoading = useSignal(false);
+  const queueError = useSignal(null);
 
   // Fetch helper for proxying with headers and metadata
   async function fetchProxy(path) {
@@ -108,6 +118,28 @@ function goExchangePage(n) {
     fetchExchanges();
   }
 }
+// Change vhost selection for exchanges
+function changeExchangeVhost(vh) {
+  selectedExchangeVhost.value = vh;
+  exchangePage.value = 1;
+  fetchExchanges();
+}
+// Change vhost selection for queues
+function changeQueueVhost(vh) {
+  selectedQueueVhost.value = vh;
+  queuePage.value = 1;
+  fetchQueues();
+}
+// Handle tab change: fetch data when entering exchanges or queues
+// Switch tabs; only fetch if data not yet loaded
+function handleTabChange(tab) {
+  activeTab.value = tab;
+  if (tab === 'exchanges' && exchangesData.value == null) {
+    fetchExchanges();
+  } else if (tab === 'queues' && queuesData.value == null) {
+    fetchQueues();
+  }
+}
 
   // Fetch overview and exchanges, then initial queues page
   async function fetchData() {
@@ -125,8 +157,16 @@ function goExchangePage(n) {
       // Fetch overview then exchanges page and initial queues page
       const ovrRes = await fetchProxy('/api/overview');
       overviewData.value = await ovrRes.json();
-      await fetchExchanges();
-      await fetchQueues();
+      // Fetch available vhosts for selectors
+      const vhsRes = await fetchProxy('/api/vhosts');
+      const vhsData = await vhsRes.json();
+      vhosts.value = vhsData.map(v => v.name);
+      // Reset filters to all
+      selectedExchangeVhost.value = 'all';
+      selectedQueueVhost.value = 'all';
+      // Clear previous exchange/queue errors
+      exchangeError.value = null;
+      queueError.value = null;
     } catch (e) {
       error.value = e.message;
     } finally {
@@ -136,11 +176,21 @@ function goExchangePage(n) {
 
   // Fetch queues with paging and sorting
   async function fetchQueues() {
-    loading.value = true;
-    error.value = null;
+    queueLoading.value = true;
+    queueError.value = null;
     try {
+      // Determine queues API path based on selected vhost
+      const qvh = selectedQueueVhost.value;
+      let baseQueuesPath;
+      if (qvh === 'all') {
+        baseQueuesPath = '/api/queues';
+      } else {
+        // encode default vhost "/" as "%2F"
+        const vhSeg = qvh === '/' ? '%2F' : encodeURIComponent(qvh);
+        baseQueuesPath = `/api/queues/${vhSeg}`;
+      }
       // Use sort_reverse (true=descending) instead of sort_dir
-      const path = `/api/queues?page=${queuePage.value}&page_size=${pageSize}&sort=${queueSortField.value}&sort_reverse=${queueSortDir.value === 'desc'}`;
+      const path = `${baseQueuesPath}?page=${queuePage.value}&page_size=${pageSize}&sort=${queueSortField.value}&sort_reverse=${queueSortDir.value === 'desc'}`;
       const res = await fetchProxy(path);
       const data = await res.json();
       const items = data.items || [];
@@ -149,19 +199,29 @@ function goExchangePage(n) {
       const page = data.page;
       queuesData.value = { items, totalCount, totalPages, page };
     } catch (e) {
-      error.value = e.message;
+      queueError.value = e.message;
     } finally {
-      loading.value = false;
+      queueLoading.value = false;
     }
   }
 
   // Fetch exchanges with paging and sorting
   async function fetchExchanges() {
-    loading.value = true;
-    error.value = null;
+    exchangeLoading.value = true;
+    exchangeError.value = null;
     try {
+      // Determine exchanges API path based on selected vhost
+      const evh = selectedExchangeVhost.value;
+      let baseExchangesPath;
+      if (evh === 'all') {
+        baseExchangesPath = '/api/exchanges';
+      } else {
+        // encode default vhost "/" as "%2F"
+        const vhSeg = evh === '/' ? '%2F' : encodeURIComponent(evh);
+        baseExchangesPath = `/api/exchanges/${vhSeg}`;
+      }
       // Use sort_reverse (true=descending) instead of sort_dir
-      const path = `/api/exchanges?page=${exchangePage.value}&page_size=${pageSize}&sort=${exchangeSortField.value}&sort_reverse=${exchangeSortDir.value === 'desc'}`;
+      const path = `${baseExchangesPath}?page=${exchangePage.value}&page_size=${pageSize}&sort=${exchangeSortField.value}&sort_reverse=${exchangeSortDir.value === 'desc'}`;
       const res = await fetchProxy(path);
       const data = await res.json();
       const items = data.items || [];
@@ -169,9 +229,9 @@ function goExchangePage(n) {
       const page = data.page;
       exchangesData.value = { items, totalPages, page };
     } catch (e) {
-      error.value = e.message;
+      exchangeError.value = e.message;
     } finally {
-      loading.value = false;
+      exchangeLoading.value = false;
     }
   }
 
@@ -188,13 +248,13 @@ function goExchangePage(n) {
 
       <section class="section">
         <div class="container is-fluid">
-          <${Tabs} activeTab=${activeTab} onChange=${t => (activeTab.value = t)} />
+          <${Tabs} activeTab=${activeTab} onChange=${handleTabChange} />
 
           <div>
             ${activeTab.value === 'overview' && html`<${Overview} loading=${loading} error=${error} overviewData=${overviewData} />`}
             ${activeTab.value === 'exchanges' && html`<${Exchanges}
-              loading=${loading}
-              error=${error}
+              loading=${exchangeLoading}
+              error=${exchangeError}
               exchangesData=${exchangesData}
               exchangeSortField=${exchangeSortField}
               exchangeSortDir=${exchangeSortDir}
@@ -202,8 +262,26 @@ function goExchangePage(n) {
               prevPage=${prevExchangePage}
               nextPage=${nextExchangePage}
               goPage=${goExchangePage}
+              vhosts=${vhosts}
+              selectedVhost=${selectedExchangeVhost}
+              onVhostChange=${changeExchangeVhost}
+              onRefresh=${fetchExchanges}
             />`}
-            ${activeTab.value === 'queues' && html`<${Queues} loading=${loading} error=${error} queuesData=${queuesData} queueSortField=${queueSortField} queueSortDir=${queueSortDir} changeSort=${changeSort} prevPage=${prevPage} nextPage=${nextPage} goPage=${goPage} />`}
+            ${activeTab.value === 'queues' && html`<${Queues}
+              loading=${queueLoading}
+              error=${queueError}
+              queuesData=${queuesData}
+              queueSortField=${queueSortField}
+              queueSortDir=${queueSortDir}
+              changeSort=${changeSort}
+              prevPage=${prevPage}
+              nextPage=${nextPage}
+              goPage=${goPage}
+              vhosts=${vhosts}
+              selectedVhost=${selectedQueueVhost}
+              onVhostChange=${changeQueueVhost}
+              onRefresh=${fetchQueues}
+            />`}
           </div>
         </div>
       </section>

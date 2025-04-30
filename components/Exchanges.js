@@ -1,62 +1,76 @@
 import { html } from 'htm/preact';
 import Pagination from './Pagination.js';
 
-export default function Exchanges({ loading, error, exchangesData, exchangeSortField, exchangeSortDir, changeSort, prevPage, nextPage, goPage }) {
+export default function Exchanges({ loading, error, exchangesData, exchangeSortField, exchangeSortDir, changeSort, prevPage, nextPage, goPage, vhosts, selectedVhost, onVhostChange, onRefresh }) {
   return html`
     <div>
       <h1 class="title">Exchanges</h1>
-      ${loading.value && html`<p>Loading...</p>`}
-      ${error.value && html`<p class="has-text-danger">${error.value}</p>`}
-      ${!loading.value && !error.value && exchangesData.value && exchangesData.value.items && exchangesData.value.items.length > 0 && html`
-        <div class="table-container">
-          <table class="table is-fullwidth is-striped is-hoverable is-narrow">
-            <thead>
-              <tr>
-                <th onClick=${() => changeSort('name')} style="cursor:pointer;">Name ${exchangeSortField.value==='name' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('vhost')} style="cursor:pointer;">VHost ${exchangeSortField.value==='vhost' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('type')} style="cursor:pointer;">Type ${exchangeSortField.value==='type' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('policy')} style="cursor:pointer;">Policy ${exchangeSortField.value==='policy' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('durable')} style="cursor:pointer;">Durable ${exchangeSortField.value==='durable' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('auto_delete')} style="cursor:pointer;">Auto Delete ${exchangeSortField.value==='auto_delete' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('internal')} style="cursor:pointer;">Internal ${exchangeSortField.value==='internal' ? (exchangeSortDir.value==='asc'?'▲':'▼') : ''}</th>
-                <th onClick=${() => changeSort('message_stats.publish_in_details.rate')} style="cursor:pointer;">
-                  In/s ${exchangeSortField.value === 'message_stats.publish_in_details.rate' ? (exchangeSortDir.value === 'asc' ? '▲' : '▼') : ''}
-                </th>
-                <th onClick=${() => changeSort('message_stats.publish_out_details.rate')} style="cursor:pointer;">
-                  Out/s ${exchangeSortField.value === 'message_stats.publish_out_details.rate' ? (exchangeSortDir.value === 'asc' ? '▲' : '▼') : ''}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              ${exchangesData.value.items.map(ex => {
-                const inRate = ex.message_stats && ex.message_stats.publish_in_details ? ex.message_stats.publish_in_details.rate.toFixed(2) : '0';
-                const outRate = ex.message_stats && ex.message_stats.publish_out_details ? ex.message_stats.publish_out_details.rate.toFixed(2) : '0';
-                return html`
-                <tr>
-                  <td title=${ex.name}>${ex.name || '<default>'}</td>
-                  <td>${ex.vhost}</td>
-                  <td>${ex.type}</td>
-                  <td>${ex.policy || ''}</td>
-                  <td>${ex.durable ? '✔' : ''}</td>
-                  <td>${ex.auto_delete ? '✔' : ''}</td>
-                  <td>${ex.internal ? '✔' : ''}</td>
-                  <td>${inRate}</td>
-                  <td>${outRate}</td>
-                </tr>
-              `})}
-            </tbody>
-          </table>
+      <div class="field">
+        <label class="label">VHost</label>
+        <div class="control">
+          <div class="select">
+            <select value=${selectedVhost.value} onChange=${e => onVhostChange(e.target.value)}>
+              <option value="all">All</option>
+              ${vhosts.value.map(vh => html`<option value=${vh}>${vh}</option>`)}
+            </select>
+          </div>
         </div>
-        <${Pagination}
-          page=${exchangesData.value.page}
-          totalPages=${exchangesData.value.totalPages}
-          prevPage=${prevPage}
-          nextPage=${nextPage}
-          goPage=${goPage}
-        />
+      </div>
+      <div class="level">
+        <div class="level-left"></div>
+        <div class="level-right">
+          <div class="level-item">
+            <button
+              class="button is-small is-primary ${loading.value ? 'is-loading' : ''}"
+              onClick=${onRefresh}
+              disabled=${loading.value}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+      ${error.value && html`<p class="has-text-danger">${error.value}</p>`}
+      ${exchangesData.value && exchangesData.value.items && exchangesData.value.items.length > 0 && html`
+        <div class="table-container">
+          ${(() => {
+            const items = exchangesData.value.items;
+            const keySet = new Set();
+            items.forEach(item => Object.keys(item).forEach(k => keySet.add(k)));
+            const keys = Array.from(keySet).sort((a, b) => a.localeCompare(b));
+            const renderValue = val => {
+              if (val == null) return '';
+              if (typeof val === 'boolean') return val ? '✔' : '';
+              if (typeof val === 'object') return JSON.stringify(val);
+              return String(val);
+            };
+            return html`
+              <table class="table is-fullwidth is-striped is-hoverable is-narrow">
+                <thead>
+                  <tr>
+                    ${keys.map(key => {
+                      const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      return html`<th onClick=${() => changeSort(key)} style="cursor:pointer;">${label} ${exchangeSortField.value === key ? (exchangeSortDir.value === 'asc' ? '▲' : '▼') : ''}</th>`;
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items.map(item => html`<tr>${keys.map(key => html`<td>${renderValue(item[key])}</td>`)}</tr>`)}
+                </tbody>
+              </table>
+            `;
+          })()}
+          <${Pagination}
+            page=${exchangesData.value.page}
+            totalPages=${exchangesData.value.totalPages}
+            prevPage=${prevPage}
+            nextPage=${nextPage}
+            goPage=${goPage}
+          />
+        </div>
       `}
-      ${!loading.value && !error.value && exchangesData.value && exchangesData.value.items && exchangesData.value.items.length === 0 && html`<p>No exchanges found.</p>`}
-      ${!loading.value && !error.value && !exchangesData.value && html`<p>No exchanges data. Click Connect.</p>`}
+      ${exchangesData.value && exchangesData.value.items && exchangesData.value.items.length === 0 && html`<p>No exchanges found.</p>`}
+      ${!exchangesData.value && html`<p>No exchanges data. Select a vhost and refresh.</p>`}
     </div>
   `;
 }
