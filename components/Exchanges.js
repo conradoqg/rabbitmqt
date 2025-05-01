@@ -15,9 +15,6 @@ import Pagination from './Pagination.js';
 
 export default function Exchanges() {
   const { data, loading, error, page, sortField, sortDir, selectedVhost } = exchanges;
-  useEffect(() => {
-    if (!data.value) fetchExchanges();
-  }, []);
   const visibleColumns = useSignal([]);
   const dropdownOpen = useSignal(false);
   const dropdownRef = useRef(null);

@@ -15,9 +15,6 @@ import Pagination from './Pagination.js';
 
 export default function Queues() {
   const { data, loading, error, page, sortField, sortDir, selectedVhost } = queues;
-  useEffect(() => {
-    if (!data.value) fetchQueues();
-  }, []);
   const visibleColumns = useSignal([]);
   const dropdownOpen = useSignal(false);
   const dropdownRef = useRef(null);
