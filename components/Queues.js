@@ -38,6 +38,12 @@ export default function Queues() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
+  // When vhosts list is loaded, auto-fetch queues if none loaded yet
+  useEffect(() => {
+    if (vhosts.value.length > 0 && !data.value) {
+      fetchQueues();
+    }
+  }, [vhosts.value]);
 
   const toggleColumn = key => {
     const cols = visibleColumns.value;
@@ -61,7 +67,7 @@ export default function Queues() {
                 <div class="select">
                   <select value=${selectedVhost.value} onChange=${e => changeQueueVhost(e.target.value)}>
                     <option value="all">All</option>
-                    ${vhosts.value.map(vh => html`<option value=${vh}>${vh}</option>`)}
+                    ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
                   </select>
                 </div>
               </div>

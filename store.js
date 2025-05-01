@@ -86,6 +86,12 @@ export async function fetchData() {
     overview.error.value = e.message;
   } finally {
     overview.loading.value = false;
+    // If user is on Exchanges or Queues tab, load that data after connecting
+    if (activeTab.value === 'exchanges') {
+      fetchExchanges();
+    } else if (activeTab.value === 'queues') {
+      fetchQueues();
+    }
   }
 }
 
@@ -111,7 +117,7 @@ export async function fetchExchanges() {
     const vh = exchanges.selectedVhost.value;
     let basePath = vh === 'all'
       ? '/api/exchanges'
-      : `/api/exchanges/${vh === '/' ? '%2F' : encodeURIComponent(vh)}`;
+      : `/api/exchanges/${vh === '/' ? '%252F' : encodeURIComponent(vh)}`;
     const params = `?page=${exchanges.page.value}&page_size=${PAGE_SIZE}` +
       `&sort=${exchanges.sortField.value}` +
       `&sort_reverse=${exchanges.sortDir.value === 'desc'}`;
@@ -179,7 +185,7 @@ export async function fetchQueues() {
     const vh = queues.selectedVhost.value;
     let basePath = vh === 'all'
       ? '/api/queues'
-      : `/api/queues/${vh === '/' ? '%2F' : encodeURIComponent(vh)}`;
+      : `/api/queues/${vh === '/' ? '%252F' : encodeURIComponent(vh)}`;
     const params = `?page=${queues.page.value}&page_size=${PAGE_SIZE}` +
       `&sort=${queues.sortField.value}` +
       `&sort_reverse=${queues.sortDir.value === 'desc'}`;
