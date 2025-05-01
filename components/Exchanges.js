@@ -214,6 +214,29 @@ export default function Exchanges() {
               </div>
             </div>
           </div>
+          <div class="level-item">
+            <div class="field">
+              <div class="control">
+                <div class="select">
+                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; page.value = 1; fetchExchanges(); }}>
+                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="level-item">
+            <div class="field">
+              <div class="control">
+                <div class="select">
+                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; page.value = 1; fetchExchanges(); }}>
+                    <option value=asc selected=${sortDir.value === 'asc'}>Ascending</option>
+                    <option value=desc selected=${sortDir.value === 'desc'}>Descending</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="level-right">
           <div class="level-item">
@@ -241,7 +264,7 @@ export default function Exchanges() {
                   <tr>
                     ${visibleColumns.value.map(key => {
           const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-          return html`<th onClick=${() => changeExchangeSort(key)} style="cursor:pointer;">${label} ${sortField.value === key ? (sortDir.value === 'asc' ? '▲' : '▼') : ''}</th>`;
+          return html`<th>${label}</th>`;
         })}
                   </tr>
                 </thead>
