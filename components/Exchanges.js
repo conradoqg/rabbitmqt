@@ -1,20 +1,86 @@
 import { html } from 'htm/preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import {
-  exchanges,
-  vhosts,
-  fetchExchanges,
-  changeExchangeSort,
-  prevExchangePage,
-  nextExchangePage,
-  goExchangePage,
-  changeExchangeVhost,
-} from '../store.js';
+import { vhosts, url, username, fetchProxy, PAGE_SIZE } from '../store.js';
 import Pagination from './Pagination.js';
 
 export default function Exchanges() {
-  const { data, loading, error, page, sortField, sortDir, selectedVhost, searchName, searchUseRegex } = exchanges;
+  // Local state for exchanges
+  const data = useSignal(null);
+  const loading = useSignal(false);
+  const error = useSignal(null);
+  const page = useSignal(1);
+  const sortField = useSignal('name');
+  const sortDir = useSignal('asc');
+  const selectedVhost = useSignal('all');
+  const searchName = useSignal('');
+  const searchUseRegex = useSignal(false);
+  // CRUD functions for exchanges
+  async function fetchExchanges() {
+    if (!url.value || !username.value) {
+      error.value = 'URL and username are required';
+      return;
+    }
+    loading.value = true;
+    error.value = null;
+    try {
+      const vh = selectedVhost.value;
+      const basePath = vh === 'all'
+        ? '/api/exchanges'
+        : `/api/exchanges/${vh === '/' ? '%252F' : encodeURIComponent(vh)}`;
+      let params = `?page=${page.value}&page_size=${PAGE_SIZE}` +
+        `&sort=${sortField.value}` +
+        `&sort_reverse=${sortDir.value === 'desc'}`;
+      if (searchName.value) {
+        params += `&name=${encodeURIComponent(searchName.value)}`;
+      }
+      params += `&use_regex=${searchUseRegex.value}`;
+      const res = await fetchProxy(basePath + params);
+      const json = await res.json();
+      data.value = {
+        items: json.items || [],
+        totalPages: json.page_count,
+        page: json.page,
+      };
+    } catch (e) {
+      error.value = e.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+  function changeExchangeSort(field) {
+    if (sortField.value === field) {
+      sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortField.value = field;
+      sortDir.value = 'asc';
+    }
+    page.value = 1;
+    fetchExchanges();
+  }
+  function prevExchangePage() {
+    if (page.value > 1) {
+      page.value--;
+      fetchExchanges();
+    }
+  }
+  function nextExchangePage() {
+    if (data.value && page.value < data.value.totalPages) {
+      page.value++;
+      fetchExchanges();
+    }
+  }
+  function goExchangePage(n) {
+    if (n !== page.value) {
+      page.value = n;
+      fetchExchanges();
+    }
+  }
+  function changeExchangeVhost(vh) {
+    selectedVhost.value = vh;
+    page.value = 1;
+    fetchExchanges();
+  }
   const visibleColumns = useSignal([]);
   const dropdownOpen = useSignal(false);
   const dropdownRef = useRef(null);
@@ -38,9 +104,9 @@ export default function Exchanges() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
-  // When vhosts list is loaded, auto-fetch exchanges if none loaded yet
+  // Auto-fetch exchanges once when vhosts load
   useEffect(() => {
-    if (vhosts.value.length > 0 && !data.value) {
+    if (vhosts.value.length > 0 && !data.value && !loading.value) {
       fetchExchanges();
     }
   }, [vhosts.value]);
@@ -62,7 +128,6 @@ export default function Exchanges() {
         <div class="level-left">
           <div class="level-item">
             <div class="field">
-              <label class="label">VHost</label>
               <div class="control">
                 <div class="select">
                   <select value=${selectedVhost.value} onChange=${e => changeExchangeVhost(e.target.value)}>
@@ -74,51 +139,57 @@ export default function Exchanges() {
             </div>
           </div>
           <div class="level-item">
-            <button
-              class="button is-primary ${loading.value ? 'is-loading' : ''}"
-              onClick=${() => { page.value = 1; fetchExchanges(); }}
-              disabled=${loading.value}
-            >
-              Search
-            </button>
-          </div>
-          <div class="level-item">
-            <div class="field">
-              <label class="label">Name</label>
+            <div class="field has-addons">
               <div class="control">
                 <input
                   class="input"
                   type="text"
-                  placeholder="Search name"
+                  placeholder="Search"
                   value=${searchName.value}
                   onInput=${e => searchName.value = e.target.value}
                 />
               </div>
+              <div class="control">
+                <button 
+                  class="button ${loading.value ? 'is-loading' : ''}"
+                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  disabled=${loading.value}
+                >
+                  <i class="fas fa-x is-small"></i>
+                </button>                
+              </div>
+              <div class="control">
+                <button 
+                  class="button ${loading.value ? 'is-loading' : ''}"
+                  onClick=${() => { page.value = 1; fetchExchanges(); }}
+                  disabled=${loading.value}
+                >
+                  Search
+                </button>                
+              </div>
             </div>
           </div>
           <div class="level-item">
-            <div class="field">
-              <label class="label">Regex</label>
               <div class="control">
                 <label class="checkbox">
                   <input
                     type="checkbox"
                     checked=${searchUseRegex.value}
                     onChange=${e => searchUseRegex.value = e.target.checked}
-                  />
-                  Use regex
+                  /> Use regex
                 </label>
               </div>
-            </div>
           </div>
           <div class="level-item">
             <div class="field">
-              <label class="label">Columns</label>
               <div class="control">
                 <div class="dropdown ${dropdownOpen.value ? 'is-active' : ''}" ref=${dropdownRef}>
                   <div class="dropdown-trigger">
                     <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" onClick=${() => dropdownOpen.value = !dropdownOpen.value}>
-                      <span>Columns ${dropdownOpen.value ? '▲' : '▼'}</span>
+                      <span>Columns </span>
+                      <span class="icon is-small">
+                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                      </span>
                     </button>
                   </div>
                   <div class="dropdown-menu" id="dropdown-menu" role="menu">
@@ -132,8 +203,7 @@ export default function Exchanges() {
                                 type="checkbox"
                                 checked=${visibleColumns.value.includes(key)}
                                 onChange=${() => toggleColumn(key)}
-                              />
-                              ${label}
+                              /> ${label}
                             </label>
                           </div>
                         `;

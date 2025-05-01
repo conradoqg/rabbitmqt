@@ -1,20 +1,87 @@
 import { html } from 'htm/preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import {
-  queues,
-  vhosts,
-  fetchQueues,
-  changeQueueSort,
-  prevQueuePage,
-  nextQueuePage,
-  goQueuePage,
-  changeQueueVhost,
-} from '../store.js';
+import { vhosts, url, username, fetchProxy, PAGE_SIZE } from '../store.js';
 import Pagination from './Pagination.js';
 
 export default function Queues() {
-  const { data, loading, error, page, sortField, sortDir, selectedVhost, searchName, searchUseRegex } = queues;
+  // Local state for queues
+  const data = useSignal(null);
+  const loading = useSignal(false);
+  const error = useSignal(null);
+  const page = useSignal(1);
+  const sortField = useSignal('name');
+  const sortDir = useSignal('asc');
+  const selectedVhost = useSignal('all');
+  const searchName = useSignal('');
+  const searchUseRegex = useSignal(false);
+  // CRUD functions for queues
+  async function fetchQueues() {
+    if (!url.value || !username.value) {
+      error.value = 'URL and username are required';
+      return;
+    }
+    loading.value = true;
+    error.value = null;
+    try {
+      const vh = selectedVhost.value;
+      const basePath = vh === 'all'
+        ? '/api/queues'
+        : `/api/queues/${vh === '/' ? '%252F' : encodeURIComponent(vh)}`;
+      let params = `?page=${page.value}&page_size=${PAGE_SIZE}` +
+        `&sort=${sortField.value}` +
+        `&sort_reverse=${sortDir.value === 'desc'}`;
+      if (searchName.value) {
+        params += `&name=${encodeURIComponent(searchName.value)}`;
+      }
+      params += `&use_regex=${searchUseRegex.value}`;
+      const res = await fetchProxy(basePath + params);
+      const json = await res.json();
+      data.value = {
+        items: json.items || [],
+        totalCount: json.total_count,
+        totalPages: json.page_count,
+        page: json.page,
+      };
+    } catch (e) {
+      error.value = e.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+  function changeQueueSort(field) {
+    if (sortField.value === field) {
+      sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortField.value = field;
+      sortDir.value = 'desc';
+    }
+    page.value = 1;
+    fetchQueues();
+  }
+  function prevQueuePage() {
+    if (page.value > 1) {
+      page.value--;
+      fetchQueues();
+    }
+  }
+  function nextQueuePage() {
+    if (data.value && page.value < data.value.totalPages) {
+      page.value++;
+      fetchQueues();
+    }
+  }
+  function goQueuePage(n) {
+    if (n !== page.value) {
+      page.value = n;
+      fetchQueues();
+    }
+  }
+  function changeQueueVhost(vh) {
+    selectedVhost.value = vh;
+    page.value = 1;
+    fetchQueues();
+  }
   const visibleColumns = useSignal([]);
   const dropdownOpen = useSignal(false);
   const dropdownRef = useRef(null);
@@ -38,9 +105,9 @@ export default function Queues() {
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
-  // When vhosts list is loaded, auto-fetch queues if none loaded yet
+  // Auto-fetch queues once when vhosts load
   useEffect(() => {
-    if (vhosts.value.length > 0 && !data.value) {
+    if (vhosts.value.length > 0 && !data.value && !loading.value) {
       fetchQueues();
     }
   }, [vhosts.value]);
@@ -62,7 +129,6 @@ export default function Queues() {
         <div class="level-left">
           <div class="level-item">
             <div class="field">
-              <label class="label">VHost</label>
               <div class="control">
                 <div class="select">
                   <select value=${selectedVhost.value} onChange=${e => changeQueueVhost(e.target.value)}>
@@ -74,51 +140,56 @@ export default function Queues() {
             </div>
           </div>
           <div class="level-item">
-            <button
-              class="button is-primary ${loading.value ? 'is-loading' : ''}"
-              onClick=${() => { page.value = 1; fetchQueues(); }}
-              disabled=${loading.value}
-            >
-              Search
-            </button>
-          </div>
-          <div class="level-item">
-            <div class="field">
-              <label class="label">Name</label>
+            <div class="field has-addons">
               <div class="control">
                 <input
                   class="input"
                   type="text"
-                  placeholder="Search name"
+                  placeholder="Search"
                   value=${searchName.value}
                   onInput=${e => searchName.value = e.target.value}
                 />
               </div>
+              <div class="control">
+                <button 
+                  class="button ${loading.value ? 'is-loading' : ''}"
+                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  disabled=${loading.value}
+                >
+                  <i class="fas fa-x is-small"></i>
+                </button>                
+              </div>
+              <div class="control">
+                <button 
+                  class="button ${loading.value ? 'is-loading' : ''}"
+                  onClick=${() => { page.value = 1; fetchExchanges(); }}
+                  disabled=${loading.value}
+                >
+                  Search
+                </button>                
+              </div>
             </div>
           </div>
           <div class="level-item">
-            <div class="field">
-              <label class="label">Regex</label>
               <div class="control">
                 <label class="checkbox">
                   <input
                     type="checkbox"
                     checked=${searchUseRegex.value}
                     onChange=${e => searchUseRegex.value = e.target.checked}
-                  />
-                  Use regex
-                </label>
+                  /> Use regex</label>
               </div>
-            </div>
           </div>
           <div class="level-item">
             <div class="field">
-              <label class="label">Columns</label>
               <div class="control">
                 <div class="dropdown ${dropdownOpen.value ? 'is-active' : ''}" ref=${dropdownRef}>
                   <div class="dropdown-trigger">
                     <button class="button " aria-haspopup="true" aria-controls="dropdown-menu" onClick=${() => dropdownOpen.value = !dropdownOpen.value}>
-                      <span>Columns ${dropdownOpen.value ? '▲' : '▼'}</span>
+                      <span>Columns </span>
+                      <span class="icon is-small">
+                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                      </span>
                     </button>
                   </div>
                   <div class="dropdown-menu" id="dropdown-menu" role="menu">
@@ -132,9 +203,7 @@ export default function Queues() {
                                 type="checkbox"
                                 checked=${visibleColumns.value.includes(key)}
                                 onChange=${() => toggleColumn(key)}
-                              />
-                              ${label}
-                            </label>
+                              /> ${label}</label>
                           </div>
                         `;
   })}
