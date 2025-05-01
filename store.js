@@ -25,6 +25,8 @@ export const exchanges = {
   sortField: signal('name'),
   sortDir: signal('asc'),
   selectedVhost: signal('all'),
+  searchName: signal(''),
+  searchUseRegex: signal(false),
 };
 
 // Queues state
@@ -36,6 +38,8 @@ export const queues = {
   sortField: signal('name'),
   sortDir: signal('asc'),
   selectedVhost: signal('all'),
+  searchName: signal(''),
+  searchUseRegex: signal(false),
 };
 
 // Common page size
@@ -118,9 +122,13 @@ export async function fetchExchanges() {
     let basePath = vh === 'all'
       ? '/api/exchanges'
       : `/api/exchanges/${vh === '/' ? '%252F' : encodeURIComponent(vh)}`;
-    const params = `?page=${exchanges.page.value}&page_size=${PAGE_SIZE}` +
+    let params = `?page=${exchanges.page.value}&page_size=${PAGE_SIZE}` +
       `&sort=${exchanges.sortField.value}` +
       `&sort_reverse=${exchanges.sortDir.value === 'desc'}`;
+    if (exchanges.searchName.value) {
+      params += `&name=${encodeURIComponent(exchanges.searchName.value)}`;
+    }
+    params += `&use_regex=${exchanges.searchUseRegex.value}`;
     const res = await fetchProxy(basePath + params);
     const data = await res.json();
     exchanges.data.value = {
@@ -186,9 +194,13 @@ export async function fetchQueues() {
     let basePath = vh === 'all'
       ? '/api/queues'
       : `/api/queues/${vh === '/' ? '%252F' : encodeURIComponent(vh)}`;
-    const params = `?page=${queues.page.value}&page_size=${PAGE_SIZE}` +
+    let params = `?page=${queues.page.value}&page_size=${PAGE_SIZE}` +
       `&sort=${queues.sortField.value}` +
       `&sort_reverse=${queues.sortDir.value === 'desc'}`;
+    if (queues.searchName.value) {
+      params += `&name=${encodeURIComponent(queues.searchName.value)}`;
+    }
+    params += `&use_regex=${queues.searchUseRegex.value}`;
     const res = await fetchProxy(basePath + params);
     const data = await res.json();
     queues.data.value = {

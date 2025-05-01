@@ -14,7 +14,7 @@ import {
 import Pagination from './Pagination.js';
 
 export default function Queues() {
-  const { data, loading, error, page, sortField, sortDir, selectedVhost } = queues;
+  const { data, loading, error, page, sortField, sortDir, selectedVhost, searchName, searchUseRegex } = queues;
   const visibleColumns = useSignal([]);
   const dropdownOpen = useSignal(false);
   const dropdownRef = useRef(null);
@@ -70,6 +70,44 @@ export default function Queues() {
                     ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
                   </select>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="level-item">
+            <button
+              class="button is-primary ${loading.value ? 'is-loading' : ''}"
+              onClick=${() => { page.value = 1; fetchQueues(); }}
+              disabled=${loading.value}
+            >
+              Search
+            </button>
+          </div>
+          <div class="level-item">
+            <div class="field">
+              <label class="label">Name</label>
+              <div class="control">
+                <input
+                  class="input"
+                  type="text"
+                  placeholder="Search name"
+                  value=${searchName.value}
+                  onInput=${e => searchName.value = e.target.value}
+                />
+              </div>
+            </div>
+          </div>
+          <div class="level-item">
+            <div class="field">
+              <label class="label">Regex</label>
+              <div class="control">
+                <label class="checkbox">
+                  <input
+                    type="checkbox"
+                    checked=${searchUseRegex.value}
+                    onChange=${e => searchUseRegex.value = e.target.checked}
+                  />
+                  Use regex
+                </label>
               </div>
             </div>
           </div>
