@@ -167,7 +167,7 @@ export default function Queues() {
               <div class="control">
                 <button 
                   class="button "
-                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  onClick=${() => { searchName.value = ''; fetchQueues(); }}
                   disabled=${loading.value}
                 >
                   <i class="mdi mdi-cancel"></i>
@@ -176,7 +176,7 @@ export default function Queues() {
               <div class="control">
                 <button 
                   class="button is-link"
-                  onClick=${() => { page.value = 1; fetchExchanges(); }}
+                  onClick=${() => { page.value = 1; fetchQueues(); }}
                   disabled=${loading.value}
                 >
                 <i class="mdi mdi-magnify"></i>
@@ -213,10 +213,10 @@ export default function Queues() {
               <div class="control">
                 <div class="dropdown ${dropdownOpen.value ? 'is-active' : ''}" ref=${dropdownRef}>
                   <div class="dropdown-trigger">
-                    <button class="button " aria-haspopup="true" aria-controls="dropdown-menu" onClick=${() => dropdownOpen.value = !dropdownOpen.value}>
+                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" onClick=${() => dropdownOpen.value = !dropdownOpen.value}>
                       <span>Columns </span>
                       <span class="icon is-small">
-                        <i class="mdi mdi-chevron-down" aria-hidden="true"></i>
+                        <i class="fas fa-angle-down" aria-hidden="true"></i>
                       </span>
                     </button>
                   </div>
@@ -244,7 +244,10 @@ export default function Queues() {
         </div>
         <div class="level-right">
           <div class="level-item">
-            <button class="button is-primary ${loading.value ? 'is-loading' : ''}" onClick=${fetchQueues} disabled=${loading.value}>
+            <button 
+              class="button is-primary ${loading.value ? 'is-loading' : ''}" 
+              onClick=${fetchQueues} 
+              disabled=${loading.value}>
               Refresh
             </button>
           </div>

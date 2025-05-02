@@ -137,7 +137,7 @@ export default function Exchanges() {
                 </div>
               </div>
               <div class="control">
-                <button class="button is-info ${loading.value ? 'is-loading' : ''}" onClick=${() => changeExchangeVhost(selectedVhost.value)} disabled=${loading.value}>
+                <button class="button is-link" onClick=${() => changeExchangeVhost(selectedVhost.value)} disabled=${loading.value}>
                   Change
                 </button>
               </div>
@@ -156,34 +156,56 @@ export default function Exchanges() {
               </div>
               <div class="control">
                 <button 
-                  class="button ${loading.value ? 'is-loading' : ''}"
-                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  class="button ${searchUseRegex.value ? 'is-success' : ''}"
+                  onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
                   disabled=${loading.value}
                 >
-                  <i class="fas fa-x is-small"></i>
+                  <i class="mdi mdi-regex is-small"></i>
                 </button>                
               </div>
               <div class="control">
                 <button 
-                  class="button ${loading.value ? 'is-loading' : ''}"
+                  class="button "
+                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  disabled=${loading.value}
+                >
+                  <i class="mdi mdi-cancel"></i>
+                </button>                
+              </div>
+              <div class="control">
+                <button 
+                  class="button is-link"
                   onClick=${() => { page.value = 1; fetchExchanges(); }}
                   disabled=${loading.value}
                 >
-                  Search
+                <i class="mdi mdi-magnify"></i>
                 </button>                
               </div>
             </div>
           </div>
           <div class="level-item">
+            <div class="field has-addons">
               <div class="control">
-                <label class="checkbox">
-                  <input
-                    type="checkbox"
-                    checked=${searchUseRegex.value}
-                    onChange=${e => searchUseRegex.value = e.target.checked}
-                  /> Use regex
-                </label>
+                <div class="select">
+                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; }}>
+                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
+                  </select>
+                </div>
               </div>
+              <div class="control">
+                <div class="select">
+                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; }}>
+                    <option value=asc selected=${sortDir.value === 'asc'}>Asc</option>
+                    <option value=desc selected=${sortDir.value === 'desc'}>Desc</option>
+                  </select>
+                </div>
+              </div>
+              <div class="control">
+                <button class="button is-link" onClick=${() => { page.value = 1; fetchExchanges(); }} disabled=${loading.value}>
+                  <i class="mdi mdi-sort"></i>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="level-item">
             <div class="field">
@@ -208,8 +230,7 @@ export default function Exchanges() {
                                 type="checkbox"
                                 checked=${visibleColumns.value.includes(key)}
                                 onChange=${() => toggleColumn(key)}
-                              /> ${label}
-                            </label>
+                              /> ${label}</label>
                           </div>
                         `;
   })}
@@ -219,39 +240,14 @@ export default function Exchanges() {
               </div>
             </div>
           </div>
-          <div class="level-item">
-            <div class="field">
-              <div class="control">
-                <div class="select">
-                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; }}>
-                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="level-item">
-            <div class="field">
-              <div class="control">
-                <div class="select">
-                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; }}>
-                    <option value=asc selected=${sortDir.value === 'asc'}>Ascending</option>
-                    <option value=desc selected=${sortDir.value === 'desc'}>Descending</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
         <div class="level-right">
           <div class="level-item">
-            <button class="button is-primary ${loading.value ? 'is-loading' : ''}" onClick=${fetchExchanges} disabled=${loading.value}>
+            <button 
+              class="button is-primary ${loading.value ? 'is-loading' : ''}" 
+              onClick=${fetchExchanges} 
+              disabled=${loading.value}>
               Refresh
-            </button>
-          </div>
-          <div class="level-item">
-            <button class="button is-info ${loading.value ? 'is-loading' : ''}" onClick=${() => { page.value = 1; fetchExchanges(); }} disabled=${loading.value}>
-              Sort
             </button>
           </div>
         </div>
