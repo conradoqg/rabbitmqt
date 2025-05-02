@@ -190,7 +190,10 @@ export default function Queues() {
               <div class="control">
                 <div class="select">
                   <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; }}>
-                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
+                    ${allKeys.map(key => {
+                      const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      return html`<option key=${key} value=${key} selected=${sortField.value === key}>${label}</option>`;
+                    })}
                   </select>
                 </div>
               </div>
