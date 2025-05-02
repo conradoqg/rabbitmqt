@@ -128,14 +128,19 @@ export default function Queues() {
       <div class="level">
         <div class="level-left">
           <div class="level-item">
-            <div class="field">
+            <div class="field has-addons">
               <div class="control">
                 <div class="select">
-                  <select value=${selectedVhost.value} onChange=${e => changeQueueVhost(e.target.value)}>
+                  <select value=${selectedVhost.value} onChange=${e => { selectedVhost.value = e.target.value }}>
                     <option value="all">All</option>
                     ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
                   </select>
                 </div>
+              </div>
+              <div class="control">
+                <button class="button is-link" onClick=${() => changeQueueVhost(selectedVhost.value)} disabled=${loading.value}>
+                  Change
+                </button>
               </div>
             </div>
           </div>
@@ -152,33 +157,56 @@ export default function Queues() {
               </div>
               <div class="control">
                 <button 
-                  class="button ${loading.value ? 'is-loading' : ''}"
-                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  class="button ${searchUseRegex.value ? 'is-success' : ''}"
+                  onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
                   disabled=${loading.value}
                 >
-                  <i class="fas fa-x is-small"></i>
+                  <i class="mdi mdi-regex is-small"></i>
                 </button>                
               </div>
               <div class="control">
                 <button 
-                  class="button ${loading.value ? 'is-loading' : ''}"
+                  class="button "
+                  onClick=${() => { searchName.value = ''; fetchExchanges(); }}
+                  disabled=${loading.value}
+                >
+                  <i class="mdi mdi-cancel"></i>
+                </button>                
+              </div>
+              <div class="control">
+                <button 
+                  class="button is-link"
                   onClick=${() => { page.value = 1; fetchExchanges(); }}
                   disabled=${loading.value}
                 >
-                  Search
+                <i class="mdi mdi-magnify"></i>
                 </button>                
               </div>
             </div>
           </div>
           <div class="level-item">
+            <div class="field has-addons">
               <div class="control">
-                <label class="checkbox">
-                  <input
-                    type="checkbox"
-                    checked=${searchUseRegex.value}
-                    onChange=${e => searchUseRegex.value = e.target.checked}
-                  /> Use regex</label>
+                <div class="select">
+                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; }}>
+                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
+                  </select>
+                </div>
               </div>
+              <div class="control">
+                <div class="select">
+                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; }}>
+                    <option value=asc selected=${sortDir.value === 'asc'}>Asc</option>
+                    <option value=desc selected=${sortDir.value === 'desc'}>Desc</option>
+                  </select>
+                </div>
+              </div>
+              <div class="control">
+                <button class="button is-link" onClick=${() => { page.value = 1; fetchQueues(); }} disabled=${loading.value}>
+                  <i class="mdi mdi-sort"></i>
+                </button>
+              </div>
+            </div>
           </div>
           <div class="level-item">
             <div class="field">
@@ -188,7 +216,7 @@ export default function Queues() {
                     <button class="button " aria-haspopup="true" aria-controls="dropdown-menu" onClick=${() => dropdownOpen.value = !dropdownOpen.value}>
                       <span>Columns </span>
                       <span class="icon is-small">
-                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                        <i class="mdi mdi-chevron-down" aria-hidden="true"></i>
                       </span>
                     </button>
                   </div>
@@ -209,29 +237,6 @@ export default function Queues() {
   })}
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="level-item">
-            <div class="field">
-              <div class="control">
-                <div class="select">
-                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; page.value = 1; fetchQueues(); }}>
-                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="level-item">
-            <div class="field">
-              <div class="control">
-                <div class="select">
-                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; page.value = 1; fetchQueues(); }}>
-                    <option value=asc selected=${sortDir.value === 'asc'}>Ascending</option>
-                    <option value=desc selected=${sortDir.value === 'desc'}>Descending</option>
-                  </select>
                 </div>
               </div>
             </div>

@@ -127,14 +127,19 @@ export default function Exchanges() {
       <div class="level">
         <div class="level-left">
           <div class="level-item">
-            <div class="field">
+            <div class="field has-addons">
               <div class="control">
                 <div class="select">
-                  <select value=${selectedVhost.value} onChange=${e => changeExchangeVhost(e.target.value)}>
+                  <select value=${selectedVhost.value} onChange=${e => { selectedVhost.value = e.target.value }}>
                     <option value="all">All</option>
                     ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
                   </select>
                 </div>
+              </div>
+              <div class="control">
+                <button class="button is-info ${loading.value ? 'is-loading' : ''}" onClick=${() => changeExchangeVhost(selectedVhost.value)} disabled=${loading.value}>
+                  Change
+                </button>
               </div>
             </div>
           </div>
@@ -218,7 +223,7 @@ export default function Exchanges() {
             <div class="field">
               <div class="control">
                 <div class="select">
-                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; page.value = 1; fetchExchanges(); }}>
+                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value; }}>
                     ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key}</option>`)}
                   </select>
                 </div>
@@ -229,7 +234,7 @@ export default function Exchanges() {
             <div class="field">
               <div class="control">
                 <div class="select">
-                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; page.value = 1; fetchExchanges(); }}>
+                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; }}>
                     <option value=asc selected=${sortDir.value === 'asc'}>Ascending</option>
                     <option value=desc selected=${sortDir.value === 'desc'}>Descending</option>
                   </select>
@@ -242,6 +247,11 @@ export default function Exchanges() {
           <div class="level-item">
             <button class="button is-primary ${loading.value ? 'is-loading' : ''}" onClick=${fetchExchanges} disabled=${loading.value}>
               Refresh
+            </button>
+          </div>
+          <div class="level-item">
+            <button class="button is-info ${loading.value ? 'is-loading' : ''}" onClick=${() => { page.value = 1; fetchExchanges(); }} disabled=${loading.value}>
+              Sort
             </button>
           </div>
         </div>
