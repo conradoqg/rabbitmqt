@@ -11,8 +11,8 @@ export default function App() {
     <div>
       <${NavBar}/>
 
-      <section class="section">
-        <div class="container is-fluid">
+      <section class="py-6">
+        <div class="container mx-auto px-4">
           <${Tabs}/>
 
           <div>

@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab } from '../store.js';
 import Pagination from './Pagination.js';
@@ -15,8 +15,6 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
   const searchName = useSignal('');
   const searchUseRegex = useSignal(false);
   const visibleColumns = useSignal([]);
-  const dropdownOpen = useSignal(false);
-  const dropdownRef = useRef(null);
   // Determine if hard-coded columns metadata is provided
   const columnsProvided = Array.isArray(columns) && columns.length > 0;
 
@@ -117,15 +115,6 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
     }
   }, [data.value]);
 
-  useEffect(() => {
-    const handleClick = e => {
-      if (dropdownOpen.value && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        dropdownOpen.value = false;
-      }
-    };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
 
   // Fetch list when vhosts are loaded and this tab becomes active
   useEffect(() => {
@@ -152,130 +141,102 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
 
   return html`
     <div>
-      <h1 class="title">${title}</h1>
-      <div class="level">
-        <div class="level-left">
-          <div class="level-item">
-            <div class="field has-addons">
-              <div class="control">
-                <div class="select">
-                  <select value=${selectedVhost.value} onChange=${e => { selectedVhost.value = e.target.value }}>
-                    <option value="all">All</option>
-                    ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
-                  </select>
-                </div>
-              </div>
-              <div class="control">
-                <button class="button is-link" onClick=${() => changeVhost(selectedVhost.value)} disabled=${loading.value}>
-                  Change
-                </button>
-              </div>
-            </div>
+      <h1 class="text-2xl font-bold mb-4">${title}</h1>
+      <div class="flex flex-wrap justify-between items-center mb-4">
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <select
+              class="select select-bordered"
+              value=${selectedVhost.value}
+              onChange=${e => { selectedVhost.value = e.target.value }}
+            >
+              <option value="all">All</option>
+              ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
+            </select>
+            <button
+              class="btn btn-secondary btn-sm"
+              onClick=${() => changeVhost(selectedVhost.value)}
+              disabled=${loading.value}
+            >Change</button>
           </div>
-          <div class="level-item">
-            <div class="field has-addons">
-              <div class="control">
-                <input
-                  class="input"
-                  type="text"
-                  placeholder="Search"
-                  value=${searchName.value}
-                  onInput=${e => searchName.value = e.target.value}
-                  onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); } }}
-                />
-              </div>
-              <div class="control">
-                <button
-                  class="button ${searchUseRegex.value ? 'is-success' : ''}"
-                  onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
-                  disabled=${loading.value}
-                >
-                  <i class="mdi mdi-regex is-small"></i>
-                </button>
-              </div>
-              <div class="control">
-                <button
-                  class="button"
-                  onClick=${() => { searchName.value = ''; fetchList(); }}
-                  disabled=${loading.value}
-                >
-                  <i class="mdi mdi-cancel"></i>
-                </button>
-              </div>
-              <div class="control">
-                <button
-                  class="button is-link"
-                  onClick=${() => { page.value = 1; fetchList(); }}
-                  disabled=${loading.value}
-                >
-                  <i class="mdi mdi-magnify"></i>
-                </button>
-              </div>
-            </div>
+          <div class="flex items-center gap-2">
+            <input
+              class="input input-bordered flex-grow"
+              type="text"
+              placeholder="Search"
+              value=${searchName.value}
+              onInput=${e => (searchName.value = e.target.value)}
+              onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); } }}
+            />
+            <button
+              class=${`btn btn-sm ${searchUseRegex.value ? 'btn-success' : 'btn-ghost'}`}
+              onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
+              disabled=${loading.value}
+            ><i class="mdi mdi-regex"></i></button>
+            <button
+              class="btn btn-sm btn-ghost"
+              onClick=${() => { searchName.value = ''; fetchList(); }}
+              disabled=${loading.value}
+            ><i class="mdi mdi-cancel"></i></button>
+            <button
+              class="btn btn-sm btn-primary"
+              onClick=${() => { page.value = 1; fetchList(); }}
+              disabled=${loading.value}
+            ><i class="mdi mdi-magnify"></i></button>
           </div>
-          <div class="level-item">
-            <div class="field has-addons">
-              <div class="control">
-                <div class="select">
-                  <select value=${sortField.value} onChange=${e => { sortField.value = e.target.value }}>
-                    ${allKeys.map(key => html`<option key=${key} value=${key} selected=${sortField.value === key}>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`)}
-                  </select>
-                </div>
-              </div>
-              <div class="control">
-                <div class="select">
-                  <select value=${sortDir.value} onChange=${e => { sortDir.value = e.target.value; }}>
-                    <option value="asc" selected=${sortDir.value === 'asc'}>Asc</option>
-                    <option value="desc" selected=${sortDir.value === 'desc'}>Desc</option>
-                  </select>
-                </div>
-              </div>
-              <div class="control">
-                <button class="button is-link" onClick=${() => { page.value = 1; fetchList(); }} disabled=${loading.value}>
-                  <i class="mdi mdi-sort"></i>
-                </button>
-              </div>
-            </div>
+          <div class="flex items-center gap-2">
+            <select
+              class="select select-bordered"
+              value=${sortField.value}
+              onChange=${e => { sortField.value = e.target.value }}
+            >
+              ${allKeys.map(key => html`
+                <option key=${key} value=${key}>${headerNamesMap[key] || key}</option>
+              `)}
+            </select>
+            <select
+              class="select select-bordered"
+              value=${sortDir.value}
+              onChange=${e => { sortDir.value = e.target.value }}
+            >
+              <option value="asc">Asc</option>
+              <option value="desc">Desc</option>
+            </select>
+            <button
+              class="btn btn-sm btn-ghost"
+              onClick=${() => { page.value = 1; fetchList(); }}
+              disabled=${loading.value}
+            ><i class="mdi mdi-sort"></i></button>
           </div>
-          <div class="level-item">
-            <div class="field">
-              <div class="control">
-                <div class="dropdown ${dropdownOpen.value ? 'is-active' : ''}" ref=${dropdownRef}>
-                  <div class="dropdown-trigger">
-                    <button class="button" aria-haspopup="true" aria-controls="dropdown-menu" onClick=${() => dropdownOpen.value = !dropdownOpen.value}>
-                      <span>Columns </span>
-                      <span class="icon is-small">
-                        <i class="fas fa-angle-down" aria-hidden="true"></i>
-                      </span>
-                    </button>
-                  </div>
-                  <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                    <div class="dropdown-content">
-                      ${allKeys.map(key => html`
-                        <div class="dropdown-item">
-                          <label class="checkbox">
-                            <input type="checkbox" checked=${visibleColumns.value.includes(key)} onChange=${() => toggleColumn(key)} /> ${headerNamesMap[key] || key}
-                          </label>
-                        </div>
-                      `)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-sm m-1">Columns</label>
+            <ul
+              tabindex="0"
+              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              ${allKeys.map(key => html`
+                <li>
+                  <label class="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked=${visibleColumns.value.includes(key)}
+                      onChange=${() => toggleColumn(key)}
+                    /> ${headerNamesMap[key] || key}
+                  </label>
+                </li>
+              `)}
+            </ul>
           </div>
         </div>
-        <div class="level-right">
-          <div class="level-item">
-            <button class="button is-primary ${loading.value ? 'is-loading' : ''}" onClick=${fetchList} disabled=${loading.value}>
-              Refresh
-            </button>
-          </div>
-        </div>
+        <button
+          class=${`btn btn-primary btn-sm ${loading.value ? 'loading' : ''}`}
+          onClick=${fetchList}
+          disabled=${loading.value}
+        >Refresh</button>
       </div>
-      ${error.value && html`<p class="has-text-danger">${error.value}</p>`}
+      ${error.value && html`<p class="text-error mb-4">${error.value}</p>`}
       ${data.value && data.value.items && data.value.items.length > 0 && html`
-        <div class="table-container">
+        <div class="overflow-x-auto">
           ${(() => {
             const items = data.value.items;
             const renderValue = val => {
@@ -285,23 +246,37 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
               return String(val);
             };
             return html`
-              <table class="table is-fullwidth is-striped is-hoverable is-narrow">
+              <table class="table w-full table-zebra">
                 <thead>
                   <tr>
                     ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}
                   </tr>
                 </thead>
                 <tbody>
-                    ${items.map(item => html`<tr>${visibleColumns.value.map(key => html`<td>${renderValue(item[key])}</td>`)}</tr>`)}
+                  ${items.map(item => html`
+                    <tr>
+                      ${visibleColumns.value.map(key => html`<td>${renderValue(item[key])}</td>`)}
+                    </tr>
+                  `)}
                 </tbody>
               </table>
             `;
           })()}
         </div>
-        <${Pagination} page=${page.value} totalPages=${data.value.totalPages} prevPage=${prevPage} nextPage=${nextPage} goPage=${goPage} />
+        <${Pagination}
+          page=${page.value}
+          totalPages=${data.value.totalPages}
+          prevPage=${prevPage}
+          nextPage=${nextPage}
+          goPage=${goPage}
+        />
       `}
-      ${data.value && data.value.items && data.value.items.length === 0 && html`<p>No ${route} found.</p>`}
-      ${!data.value && html`<p>No ${route} data. Select a vhost and refresh.</p>`}
+      ${data.value && data.value.items && data.value.items.length === 0 && html`
+        <p class="text-center">No ${route} found.</p>
+      `}
+      ${!data.value && html`
+        <p class="text-center">No ${route} data. Select a vhost and refresh.</p>
+      `}
     </div>
   `;
 }

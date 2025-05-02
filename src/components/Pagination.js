@@ -18,16 +18,25 @@ export default function Pagination({ page, totalPages, prevPage, nextPage, goPag
   const ellipses = "&hellip;"
 
   return html`
-    <nav class="pagination is-small" role="navigation" aria-label="pagination">
-      <a class="pagination-previous ${page === 1 ? 'is-disabled' : ''}" onClick=${prevPage}>Previous</a>
-      <a class="pagination-next ${page === totalPages ? 'is-disabled' : ''}" onClick=${nextPage}>Next</a>
-      <ul class="pagination-list">
-        ${links.map(link =>
-    link === '...'
-      ? html`<li><span class="pagination-ellipsis">...</span></li>`
-      : html`<li><a class="pagination-link ${link === page ? 'is-current' : ''}" onClick=${() => goPage(link)}>${link}</a></li>`
-  )}
-      </ul>
-    </nav>
+    <div class="flex flex-wrap items-center space-x-1 mb-4">
+      <button
+        class=${`btn btn-sm ${page === 1 ? 'btn-disabled' : 'btn-ghost'}`}
+        onClick=${prevPage}
+        disabled=${page === 1}
+      >Previous</button>
+      ${links.map(link =>
+        link === '...'
+          ? html`<button class="btn btn-sm btn-ghost">…</button>`
+          : html`<button
+              class=${`btn btn-sm ${link === page ? 'btn-active' : 'btn-ghost'}`}
+              onClick=${() => goPage(link)}
+            >${link}</button>`
+      )}
+      <button
+        class=${`btn btn-sm ${page === totalPages ? 'btn-disabled' : 'btn-ghost'}`}
+        onClick=${nextPage}
+        disabled=${page === totalPages}
+      >Next</button>
+    </div>
   `;
 }
