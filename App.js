@@ -16,9 +16,9 @@ export default function App() {
           <${Tabs}/>
 
           <div>
-            ${activeTab.value === 'overview' && html`<${Overview}/>`}
-            ${activeTab.value === 'exchanges' && html`<${Exchanges}/>`}
-            ${activeTab.value === 'queues' && html`<${Queues}/>`}
+            <div hidden=${activeTab.value !== 'overview'}><${Overview}/></div>
+            <div hidden=${activeTab.value !== 'exchanges'}><${Exchanges}/></div>
+            <div hidden=${activeTab.value !== 'queues'}><${Queues}/></div>
           </div>
         </div>
       </section>
