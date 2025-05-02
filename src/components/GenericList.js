@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useEffect, useRef } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { vhosts, url, username, fetchProxy, PAGE_SIZE } from '../store.js';
+import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab } from '../store.js';
 import Pagination from './Pagination.js';
 
 export default function GenericList({ title, route, columns, newFieldSortDir = 'asc' }) {
@@ -127,11 +127,17 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  // Fetch list when vhosts are loaded and this tab becomes active
   useEffect(() => {
-    if (vhosts.value.length > 0 && !data.value && !loading.value) {
+    if (
+      vhosts.value.length > 0 &&
+      !data.value &&
+      !loading.value &&
+      activeTab.value === route
+    ) {
       fetchList();
     }
-  }, [vhosts.value]);
+  }, [vhosts.value, activeTab.value]);
 
   const toggleColumn = key => {
     const cols = visibleColumns.value;
