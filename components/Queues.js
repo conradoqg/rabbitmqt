@@ -153,6 +153,7 @@ export default function Queues() {
                   placeholder="Search"
                   value=${searchName.value}
                   onInput=${e => searchName.value = e.target.value}
+                  onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchQueues(); } }}
                 />
               </div>
               <div class="control">

@@ -152,6 +152,7 @@ export default function Exchanges() {
                   placeholder="Search"
                   value=${searchName.value}
                   onInput=${e => searchName.value = e.target.value}
+                  onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchExchanges(); } }}
                 />
               </div>
               <div class="control">
