@@ -4,7 +4,7 @@ import { useSignal } from '@preact/signals';
 import { vhosts, url, username, fetchProxy, PAGE_SIZE } from '../store.js';
 import Pagination from './Pagination.js';
 
-export default function GenericList({ title, route, newFieldSortDir = 'asc' }) {
+export default function GenericList({ title, route, columns, newFieldSortDir = 'asc' }) {
   const data = useSignal(null);
   const loading = useSignal(false);
   const error = useSignal(null);
@@ -17,6 +17,8 @@ export default function GenericList({ title, route, newFieldSortDir = 'asc' }) {
   const visibleColumns = useSignal([]);
   const dropdownOpen = useSignal(false);
   const dropdownRef = useRef(null);
+  // Determine if hard-coded columns metadata is provided
+  const columnsProvided = Array.isArray(columns) && columns.length > 0;
 
   async function fetchList() {
     if (!url.value || !username.value) {
@@ -91,12 +93,26 @@ export default function GenericList({ title, route, newFieldSortDir = 'asc' }) {
   }
 
   const items = data.value?.items || [];
-  const keySet = new Set();
-  items.forEach(item => Object.keys(item).forEach(k => keySet.add(k)));
-  const allKeys = Array.from(keySet).sort((a, b) => a.localeCompare(b));
+  // Determine columns: use provided metadata or infer keys dynamically
+  let allKeys = [];
+  const headerNamesMap = {};
+  if (columnsProvided) {
+    allKeys = columns.map(c => c.field);
+    columns.forEach(c => { headerNamesMap[c.field] = c.displayName; });
+  } else {
+    const keySet = new Set();
+    items.forEach(item => Object.keys(item).forEach(k => keySet.add(k)));
+    allKeys = Array.from(keySet).sort((a, b) => a.localeCompare(b));
+    allKeys.forEach(key => {
+      headerNamesMap[key] = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    });
+  }
 
   useEffect(() => {
-    if (allKeys.length > 0 && visibleColumns.value.length === 0) {
+    if (columnsProvided) {
+      // initialize visible columns to metadata-defined fields
+      visibleColumns.value = allKeys;
+    } else if (allKeys.length > 0 && visibleColumns.value.length === 0) {
       visibleColumns.value = allKeys;
     }
   }, [data.value]);
@@ -232,7 +248,7 @@ export default function GenericList({ title, route, newFieldSortDir = 'asc' }) {
                       ${allKeys.map(key => html`
                         <div class="dropdown-item">
                           <label class="checkbox">
-                            <input type="checkbox" checked=${visibleColumns.value.includes(key)} onChange=${() => toggleColumn(key)} /> ${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            <input type="checkbox" checked=${visibleColumns.value.includes(key)} onChange=${() => toggleColumn(key)} /> ${headerNamesMap[key] || key}
                           </label>
                         </div>
                       `)}
@@ -266,7 +282,7 @@ export default function GenericList({ title, route, newFieldSortDir = 'asc' }) {
               <table class="table is-fullwidth is-striped is-hoverable is-narrow">
                 <thead>
                   <tr>
-                    ${visibleColumns.value.map(key => html`<th>${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`)}
+                    ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}
                   </tr>
                 </thead>
                 <tbody>
