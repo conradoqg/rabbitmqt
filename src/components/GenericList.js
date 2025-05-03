@@ -12,6 +12,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
   const sortField = useSignal('name');
   const sortDir = useSignal('asc');
   const selectedVhost = useSignal('all');
+  const itemsPerPage = useSignal(PAGE_SIZE);
   const searchName = useSignal('');
   const searchUseRegex = useSignal(false);
   const visibleColumns = useSignal([]);
@@ -31,7 +32,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
       const basePath = vh === 'all'
         ? `/api/${route}`
         : `/api/${route}/${encodedVhost}`;
-      let params = `?page=${page.value}&page_size=${PAGE_SIZE}` +
+      let params = `?page=${page.value}&page_size=${itemsPerPage.value}` +
         `&sort=${sortField.value}` +
         `&sort_reverse=${sortDir.value === 'desc'}`;
       if (searchName.value) {
@@ -127,6 +128,12 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
       fetchList();
     }
   }, [vhosts.value, activeTab.value]);
+  // Handler for changing items per page
+  function changePageSize(size) {
+    itemsPerPage.value = size;
+    page.value = 1;
+    fetchList();
+  }
 
   const toggleColumn = key => {
     const cols = visibleColumns.value;
@@ -251,7 +258,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
           return String(val);
         };
         return html`
-                  <table class="table w-full table-zebra">
+                  <table class="table table-xs table-pin-rows w-full">
                     <thead>
                       <tr>
                         ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}
@@ -259,7 +266,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
                     </thead>
                     <tbody>
                       ${items.map(item => html`
-                        <tr>
+                        <tr class="hover:bg-base-200">
                           ${visibleColumns.value.map(key => html`<td>${renderValue(item[key])}</td>`)}
                         </tr>
                       `)}
@@ -275,6 +282,8 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
                 prevPage=${prevPage}
                 nextPage=${nextPage}
                 goPage=${goPage}
+                itemsPerPage=${itemsPerPage.value}
+                onChangeItemsPerPage=${changePageSize}
               />
             </div>
           </div>

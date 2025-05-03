@@ -1,6 +1,6 @@
 import { html } from 'htm/preact';
 
-export default function Pagination({ page, totalPages, prevPage, nextPage, goPage }) {
+export default function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage, onChangeItemsPerPage }) {
   // Calculate visible page links (with ellipses)
   let links = [];
   const start = Math.max(1, page - 2);
@@ -37,6 +37,16 @@ export default function Pagination({ page, totalPages, prevPage, nextPage, goPag
         onClick=${nextPage}
         disabled=${page === totalPages}
       >Next</button>
+      <select
+        class="select select-bordered join-item"
+        value=${itemsPerPage}
+        onChange=${e => onChangeItemsPerPage(parseInt(e.target.value, 10))}
+      >
+        <option value="10">10</option>
+        <option value="30">30</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
     </div>
   `;
 }

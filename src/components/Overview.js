@@ -68,7 +68,7 @@ export default function Overview() {
         <!-- General Info -->
         <h2 class="text-xl font-semibold mt-6 mb-2">General Info</h2>
         <div class="overflow-x-auto mb-4">
-          <table class="table w-full table-zebra">
+          <table class="table table-xs table-zebra table-pin-rows w-full">
           <tbody>
             ${[
         ['Product Name', data.product_name],
@@ -85,7 +85,7 @@ export default function Overview() {
         ['Policy Updating Enabled', data.is_op_policy_updating_enabled],
         ['Enable Queue Totals', data.enable_queue_totals],
         ['Statistics DB Event Queue', data.statistics_db_event_queue]
-      ].map(([key, val]) => html`<tr><th>${key}</th><td>${String(val)}</td></tr>`)}
+      ].map(([key, val]) => html`<tr class='hover:bg-base-200'><th>${key}</th><td>${String(val)}</td></tr>`)}
           </tbody>
         </table>
         </div>
@@ -93,13 +93,13 @@ export default function Overview() {
         <!-- Sample Retention Policies -->
         <h2 class="text-xl font-semibold mt-6 mb-2">Sample Retention Policies</h2>
         <div class="overflow-x-auto mb-4">
-          <table class="table w-full table-zebra text-sm">
+          <table class="table table-xs table-zebra table-pin-rows w-full">
           <thead>
             <tr><th>Policy</th><th>Intervals (s)</th></tr>
           </thead>
           <tbody>
             ${Object.entries(data.sample_retention_policies || {}).map(([policy, intervals]) => html`
-              <tr><td>${policy}</td><td>${intervals.join(', ')}</td></tr>
+              <tr class='hover:bg-base-200'><td>${policy}</td><td>${intervals.join(', ')}</td></tr>
             `)}
           </tbody>
         </table>
@@ -109,11 +109,11 @@ export default function Overview() {
         ${data.exchange_types?.length > 0 && html`
         <h2 class="text-xl font-semibold mt-6 mb-2">Exchange Types</h2>
         <div class="overflow-x-auto mb-4">
-          <table class="table w-full table-zebra text-xs">
+          <table class="table table-xs table-zebra table-pin-rows w-full">
           <thead><tr><th>Name</th><th>Description</th><th>Enabled</th><th>Purpose</th></tr></thead>
           <tbody>
             ${data.exchange_types?.map(ex => html`
-              <tr>
+              <tr class='hover:bg-base-200'>
                 <td>${ex.name}</td>
                 <td>${ex.description}</td>
                 <td>${ex.enabled ? '✔' : ''}</td>
@@ -128,13 +128,13 @@ export default function Overview() {
         <!-- Message Stats -->
         <h2 class="text-xl font-semibold mt-6 mb-2">Message Stats</h2>
         <div class="overflow-x-auto mb-4">
-          <table class="table w-full table-zebra text-xs">
+          <table class="table table-xs table-zebra table-pin-rows w-full">
           <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
           <tbody>
             ${Object.entries(data.message_stats || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
         const details = data.message_stats[`${key}_details`];
         const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
-        return html`<tr><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
+        return html`<tr class='hover:bg-base-200'><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
       })}
           </tbody>
         </table>
@@ -143,13 +143,13 @@ export default function Overview() {
         <!-- Churn Rates -->
         <h2 class="text-xl font-semibold mt-6 mb-2">Churn Rates</h2>
         <div class="overflow-x-auto mb-4">
-          <table class="table w-full table-zebra text-xs">
+          <table class="table table-xs table-zebra table-pin-rows w-full">
           <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
           <tbody>
             ${Object.entries(data.churn_rates || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
         const details = data.churn_rates[`${key}_details`];
         const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
-        return html`<tr><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
+        return html`<tr class='hover:bg-base-200'><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
       })}
           </tbody>
         </table>
@@ -158,11 +158,11 @@ export default function Overview() {
         ${data.listeners?.length > 0 && html`
         <h2 class="text-xl font-semibold mt-6 mb-2">Listeners</h2>
         <div class="overflow-x-auto mb-4">
-          <table class="table w-full table-zebra text-xs">
+          <table class="table table-xs table-zebra table-pin-rows w-full">
           <thead><tr><th>Node</th><th>Protocol</th><th>IP Address</th><th>Port</th></tr></thead>
           <tbody>
             ${data.listeners?.map(l => html`
-              <tr>
+              <tr class='hover:bg-base-200'>
                 <td>${l.node}</td>
                 <td>${l.protocol}</td>
                 <td>${l.ip_address}</td>
