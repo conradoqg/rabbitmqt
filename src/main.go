@@ -30,8 +30,10 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 	rawTarget := strings.TrimPrefix(raw, "/proxy/")
 	rawTarget = strings.ReplaceAll(rawTarget, "%252F", "%2F")
 	var targetURL string
-	if strings.HasPrefix(rawTarget, "http://") || strings.HasPrefix(rawTarget, "https://") {
-		targetURL = rawTarget
+	if strings.HasPrefix(rawTarget, "http:/") {
+		targetURL = "http://" + strings.TrimPrefix(rawTarget, "http:/")
+	} else if strings.HasPrefix(rawTarget, "https:/") {
+		targetURL = "https://" + strings.TrimPrefix(rawTarget, "https:/")
 	} else {
 		targetURL = "https://" + rawTarget
 	}

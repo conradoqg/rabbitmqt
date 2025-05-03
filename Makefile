@@ -1,10 +1,18 @@
 # Makefile for running RabbitMQ with limited resources and benchmarking with Go
 
 # Configurable parameters
-RATE ?= 100     # messages per second
+RATE ?= 0       # messages per second (0 for no throttling)
 DURATION ?=     # duration of the test (empty for indefinite)
-producers ?= 1  # number of concurrent producers
-consumers ?= 1  # number of concurrent consumers
+PRODUCERS ?= 1  # number of concurrent producers
+CONSUMERS ?= 1  # number of concurrent consumers
+SIZE ?= 4096   # message size in bytes (larger sizes increase broker CPU usage)
+EXCHANGE_TYPE ?= direct  # AMQP exchange type (direct, topic, fanout)
+PUBLISHER_CONFIRM ?= false  # enable publisher confirms (false|true)
+CONSUMER_CONFIRM ?= false   # enable consumer confirms/manualacks (false|true)
+
+# RabbitMQ container resource limits (override with make MEMORY=<mem> CPUS=<cpus>)
+MEMORY ?= 2048m  # container memory limit (e.g. 512m, 1g)
+CPUS   ?= 0.5    # container CPU quota in cores (e.g. 1, 2)
 
 .PHONY: start-rabbitmq wait-rabbitmq test-rabbitmq stop-rabbitmq clean
 .PHONY: test-rabbitmq-tmux
@@ -12,22 +20,21 @@ consumers ?= 1  # number of concurrent consumers
 start-rabbitmq:
 		docker run --name rabbitmq-limited -d --rm \
 		--user 999:999 \
-		--memory=256m --cpus=0.5 \
+	       --memory=$(MEMORY) --cpus=$(CPUS) \
+       -v $(CURDIR)/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro \
+	   -v $(CURDIR)/advanced.config:/etc/rabbitmq/advanced.config:ro \
 		-p 5672:5672 -p 15672:15672 \
 		rabbitmq:3-management
 
-wait-rabbitmq:
-	@echo "Waiting for RabbitMQ to become available..."
-	@until docker exec rabbitmq-limited rabbitmqctl status > /dev/null 2>&1; do sleep 1; done
-	@echo "RabbitMQ is ready."
-
-test-rabbitmq: start-rabbitmq
+test-rabbitmq:
 	@echo "Running benchmark (will stop RabbitMQ when done)..."
-		docker run --rm --link rabbitmq-limited:rabbitmq \
-		-v $(CURDIR)/rabbitmq-bench:/bench -w /bench golang:latest \
-		go run main.go -url amqp://guest:guest@rabbitmq:5672/ \
-			-rate $(RATE) $(if $(DURATION),-duration $(DURATION)) \
-			-producers $(producers) -consumers $(consumers)
+		cd rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ \
+			-rate $(RATE) \
+			$(if $(DURATION),-duration $(DURATION)) \
+			-producers $(PRODUCERS) -consumers $(CONSUMERS) \
+			-size $(SIZE) \
+			-exchange-type $(EXCHANGE_TYPE) \
+			-publisher-confirm $(PUBLISHER_CONFIRM) -consumer-confirm $(CONSUMER_CONFIRM)
 	@echo "Benchmark finished, stopping RabbitMQ..."
 	@docker stop rabbitmq-limited
 
@@ -35,7 +42,7 @@ stop-rabbitmq:
 	-docker stop rabbitmq-limited
 
 # Run benchmark in a 3-pane tmux session:
-# Top: docker stats, Middle: container logs, Bottom: go bench
+# Top: RabbitMQ logs (docker run), Bottom-left: docker stats, Bottom-right: go bench
 test-rabbitmq-tmux:
 	@which tmux >/dev/null 2>&1 || { echo "Error: tmux not installed"; exit 1; }
 	@echo "Cleaning up any existing RabbitMQ container/session..."
@@ -44,13 +51,21 @@ test-rabbitmq-tmux:
 	@tmux kill-session -t rabbitmq-bench 2>/dev/null || true
 	# Pane 0: run RabbitMQ (attached, shows logs)
 	@tmux new-session -d -s rabbitmq-bench \
-		'docker run --name rabbitmq-limited --user 999:999 --memory=512m --cpus=0.1 \
+		'docker run --name rabbitmq-limited --user 999:999 --memory=$(MEMORY) --cpus=$(CPUS) \
+			-v $(CURDIR)/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro \
+			-v $(CURDIR)/advanced.config:/etc/rabbitmq/advanced.config:ro \
 			-p 5672:5672 -p 15672:15672 rabbitmq:3-management'
-	# Pane 1: stats
-	@tmux split-window -v -t rabbitmq-bench:0 -p 33 'docker stats rabbitmq-limited'
-	# Pane 2: run the bench command only (locally)
-	@tmux split-window -v -t rabbitmq-bench:0.1 -p 50 'cd rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ -rate $(RATE) $(if $(DURATION),-duration $(DURATION)) -producers $(producers) -consumers $(consumers)'
-	@tmux select-layout -t rabbitmq-bench tiled
+	# Pane 1: docker stats (bottom-left)
+	@tmux split-window -v -t rabbitmq-bench:0 -p 33 'sleep 2 && docker stats rabbitmq-limited'
+	# Pane 2: run the bench command only (locally) (bottom-right)
+	@tmux split-window -h -t rabbitmq-bench:0.1 -p 50 \
+		'cd rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ \
+			-rate $(RATE) \
+			$(if $(DURATION),-duration $(DURATION)) \
+			-producers $(PRODUCERS) -consumers $(CONSUMERS) \
+			-size $(SIZE) \
+			-exchange-type $(EXCHANGE_TYPE) \
+			-publisher-confirm $(PUBLISHER_CONFIRM) -consumer-confirm $(CONSUMER_CONFIRM)'
 	@tmux attach -t rabbitmq-bench
 	# After tmux session exits, stop RabbitMQ container
 	@echo "Stopping RabbitMQ container..."
