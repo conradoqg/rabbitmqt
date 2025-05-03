@@ -18,22 +18,22 @@ export default function Pagination({ page, totalPages, prevPage, nextPage, goPag
   const ellipses = "&hellip;"
 
   return html`
-    <div class="flex flex-wrap items-center space-x-1 mb-4">
+    <div class="join">
       <button
-        class=${`btn btn-sm ${page === 1 ? 'btn-disabled' : 'btn-ghost'}`}
+        class=${`btn join-item ${page === 1 ? 'btn-disabled' : ''}`}
         onClick=${prevPage}
         disabled=${page === 1}
       >Previous</button>
       ${links.map(link =>
-        link === '...'
-          ? html`<button class="btn btn-sm btn-ghost">…</button>`
-          : html`<button
-              class=${`btn btn-sm ${link === page ? 'btn-active' : 'btn-ghost'}`}
+    link === '...'
+      ? html`<button class="btn join-item btn-disabled">…</button>`
+      : html`<button
+              class=${`btn join-item ${link === page ? 'btn-active' : ''}`}
               onClick=${() => goPage(link)}
             >${link}</button>`
-      )}
+  )}
       <button
-        class=${`btn btn-sm ${page === totalPages ? 'btn-disabled' : 'btn-ghost'}`}
+        class=${`btn join-item ${page === totalPages ? 'btn-disabled' : ''}`}
         onClick=${nextPage}
         disabled=${page === totalPages}
       >Next</button>

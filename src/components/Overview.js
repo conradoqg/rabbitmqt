@@ -7,9 +7,15 @@ export default function Overview() {
   return html`
     <div>
       <h1 class="text-2xl font-bold mb-4">Overview</h1>
-      <button class="btn btn-sm btn-primary ${loading.value ? 'loading' : ''} mb-4" onClick=${fetchData} disabled=${loading.value}>Refresh</button>
-      ${loading.value && html`<p>Loading...</p>`}
-      ${error.value && html`<p class="text-error mb-4">${error.value}</p>`}
+      <div class="flex flex-wrap justify-between items-center mb-4">
+        <div class="flex flex-wrap items-center gap-4"></div>
+        <button 
+          class=${`btn btn-primary ${loading.value ? 'loading' : ''}`}          
+          onClick=${fetchData} 
+          disabled=${loading.value}>Refresh
+        </button>
+      </div>      
+      ${error.value && html`<div class="alert alert-error mb-4"><div>${error.value}</div></div>`}
       ${!loading.value && !error.value && data && html`
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div class="space-y-1">
@@ -31,31 +37,31 @@ export default function Overview() {
             <p>${data.rates_mode}</p>
           </div>
         </div>
-        <div class="flex flex-wrap gap-4 mb-4">
-        ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
-            <div class="flex-1 min-w-[8rem] text-center bg-base-200 p-4 rounded">
-              <p class="text-3xl font-bold">${val}</p>
-              <p class="text-sm text-gray-500">${key.charAt(0).toUpperCase() + key.slice(1)}</p>
+        <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
+          ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
+            <div class="stat">
+              <div class="stat-value">${val}</div>
+              <div class="stat-desc">${key.charAt(0).toUpperCase() + key.slice(1)}</div>
             </div>
           `)}
         </div>
-        <div class="flex flex-wrap gap-4 mb-4">
+        <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
           ${Object.entries(data.queue_totals || {}).filter(([k]) => !k.endsWith('_details')).map(([key, val]) => html`
-            <div class="flex-1 min-w-[8rem] text-center bg-base-200 p-4 rounded">
-              <p class="text-3xl font-bold">${val}</p>
-              <p class="text-sm text-gray-500">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+            <div class="stat">
+              <div class="stat-value">${val}</div>
+              <div class="stat-desc">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
             </div>
           `)}
         </div>
-        <div class="flex flex-wrap gap-4 mb-4">
-          ${['publish_details','deliver_details','ack_details'].map(metric => {
-            const m = data.message_stats && data.message_stats[metric];
-            const rate = m && m.rate != null ? m.rate.toFixed(2) : '0';
-            const name = metric.replace(/_details$/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            return html`
-            <div class="flex-1 min-w-[8rem] text-center bg-base-200 p-4 rounded">
-              <p class="text-3xl font-bold">${rate}</p>
-              <p class="text-sm text-gray-500">${name}/s</p>
+        <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
+          ${['publish_details', 'deliver_details', 'ack_details'].map(metric => {
+    const m = data.message_stats && data.message_stats[metric];
+    const rate = m && m.rate != null ? m.rate.toFixed(2) : '0';
+    const name = metric.replace(/_details$/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return html`
+            <div class="stat">
+              <div class="stat-value">${rate}</div>
+              <div class="stat-desc">${name}/s</div>
             </div>
           `})}
         </div>
@@ -65,21 +71,21 @@ export default function Overview() {
           <table class="table w-full table-zebra">
           <tbody>
             ${[
-              ['Product Name', data.product_name],
-              ['Product Version', data.product_version],
-              ['RabbitMQ Version', data.rabbitmq_version],
-              ['Management Version', data.management_version],
-              ['Rates Mode', data.rates_mode],
-              ['Cluster Name', data.cluster_name],
-              ['Node', data.node],
-              ['Erlang Version', data.erlang_version],
-              ['Erlang Full Version', data.erlang_full_version],
-              ['Release Series Support Status', data.release_series_support_status],
-              ['Disable Stats', data.disable_stats],
-              ['Policy Updating Enabled', data.is_op_policy_updating_enabled],
-              ['Enable Queue Totals', data.enable_queue_totals],
-              ['Statistics DB Event Queue', data.statistics_db_event_queue]
-            ].map(([key, val]) => html`<tr><th>${key}</th><td>${String(val)}</td></tr>`)}
+        ['Product Name', data.product_name],
+        ['Product Version', data.product_version],
+        ['RabbitMQ Version', data.rabbitmq_version],
+        ['Management Version', data.management_version],
+        ['Rates Mode', data.rates_mode],
+        ['Cluster Name', data.cluster_name],
+        ['Node', data.node],
+        ['Erlang Version', data.erlang_version],
+        ['Erlang Full Version', data.erlang_full_version],
+        ['Release Series Support Status', data.release_series_support_status],
+        ['Disable Stats', data.disable_stats],
+        ['Policy Updating Enabled', data.is_op_policy_updating_enabled],
+        ['Enable Queue Totals', data.enable_queue_totals],
+        ['Statistics DB Event Queue', data.statistics_db_event_queue]
+      ].map(([key, val]) => html`<tr><th>${key}</th><td>${String(val)}</td></tr>`)}
           </tbody>
         </table>
         </div>
@@ -126,12 +132,13 @@ export default function Overview() {
           <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
           <tbody>
             ${Object.entries(data.message_stats || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
-              const details = data.message_stats[`${key}_details`];
-              const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
-              return html`<tr><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
-            })}
+        const details = data.message_stats[`${key}_details`];
+        const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
+        return html`<tr><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
+      })}
           </tbody>
         </table>
+        </div>
 
         <!-- Churn Rates -->
         <h2 class="text-xl font-semibold mt-6 mb-2">Churn Rates</h2>
@@ -140,10 +147,10 @@ export default function Overview() {
           <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
           <tbody>
             ${Object.entries(data.churn_rates || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
-              const details = data.churn_rates[`${key}_details`];
-              const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
-              return html`<tr><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
-            })}
+        const details = data.churn_rates[`${key}_details`];
+        const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
+        return html`<tr><td>${key}</td><td>${val}</td><td>${rate}</td></tr>`;
+      })}
           </tbody>
         </table>
         </div>

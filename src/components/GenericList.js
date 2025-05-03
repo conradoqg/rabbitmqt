@@ -144,24 +144,25 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
       <h1 class="text-2xl font-bold mb-4">${title}</h1>
       <div class="flex flex-wrap justify-between items-center mb-4">
         <div class="flex flex-wrap items-center gap-4">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center join">
             <select
-              class="select select-bordered"
+              class="select select-bordered join-item"
               value=${selectedVhost.value}
               onChange=${e => { selectedVhost.value = e.target.value }}
+              disabled=${loading.value}
             >
               <option value="all">All</option>
               ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
             </select>
             <button
-              class="btn btn-secondary btn-sm"
+              class="btn btn-secondary join-item"
               onClick=${() => changeVhost(selectedVhost.value)}
               disabled=${loading.value}
-            >Change</button>
+            ><i class="mdi mdi-arrow-right-bold"></i></button>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center join">
             <input
-              class="input input-bordered flex-grow"
+              class="input input-bordered flex-grow join-item"
               type="text"
               placeholder="Search"
               value=${searchName.value}
@@ -169,47 +170,49 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
               onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); } }}
             />
             <button
-              class=${`btn btn-sm ${searchUseRegex.value ? 'btn-success' : 'btn-ghost'}`}
+              class=${`btn ${searchUseRegex.value ? 'btn-secondary' : ''} join-item`}
               onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
               disabled=${loading.value}
             ><i class="mdi mdi-regex"></i></button>
             <button
-              class="btn btn-sm btn-ghost"
+              class="btn btn-secondary join-item"
               onClick=${() => { searchName.value = ''; fetchList(); }}
               disabled=${loading.value}
             ><i class="mdi mdi-cancel"></i></button>
             <button
-              class="btn btn-sm btn-primary"
+              class="btn btn-secondary join-item"
               onClick=${() => { page.value = 1; fetchList(); }}
               disabled=${loading.value}
             ><i class="mdi mdi-magnify"></i></button>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center join">
             <select
-              class="select select-bordered"
+              class="select select-bordered join-item"
               value=${sortField.value}
               onChange=${e => { sortField.value = e.target.value }}
+              disabled=${loading.value}
             >
               ${allKeys.map(key => html`
                 <option key=${key} value=${key}>${headerNamesMap[key] || key}</option>
               `)}
             </select>
             <select
-              class="select select-bordered"
+              class="select select-bordered join-item"
               value=${sortDir.value}
               onChange=${e => { sortDir.value = e.target.value }}
+              disabled=${loading.value}
             >
               <option value="asc">Asc</option>
               <option value="desc">Desc</option>
             </select>
             <button
-              class="btn btn-sm btn-ghost"
+              class="btn btn-secondary join-item"
               onClick=${() => { page.value = 1; fetchList(); }}
               disabled=${loading.value}
             ><i class="mdi mdi-sort"></i></button>
           </div>
           <div class="dropdown dropdown-end">
-            <label tabindex="0" class="btn btn-sm m-1">Columns</label>
+            <label tabindex="0" class="btn btn-secondary" disabled=${loading.value}><i class="mdi mdi-view-column"></i></label>
             <ul
               tabindex="0"
               class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
@@ -229,47 +232,53 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
           </div>
         </div>
         <button
-          class=${`btn btn-primary btn-sm ${loading.value ? 'loading' : ''}`}
+          class=${`btn btn-primary ${loading.value ? 'loading' : ''}`}
           onClick=${fetchList}
           disabled=${loading.value}
         >Refresh</button>
-      </div>
-      ${error.value && html`<p class="text-error mb-4">${error.value}</p>`}
+      </div>      
+      ${error.value && html`<div class="alert alert-error mb-4"><div>${error.value}</div></div>`}
       ${data.value && data.value.items && data.value.items.length > 0 && html`
-        <div class="overflow-x-auto">
-          ${(() => {
-            const items = data.value.items;
-            const renderValue = val => {
-              if (val == null) return '';
-              if (typeof val === 'boolean') return val ? '✔' : '';
-              if (typeof val === 'object') return JSON.stringify(val);
-              return String(val);
-            };
-            return html`
-              <table class="table w-full table-zebra">
-                <thead>
-                  <tr>
-                    ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}
-                  </tr>
-                </thead>
-                <tbody>
-                  ${items.map(item => html`
-                    <tr>
-                      ${visibleColumns.value.map(key => html`<td>${renderValue(item[key])}</td>`)}
-                    </tr>
-                  `)}
-                </tbody>
-              </table>
-            `;
-          })()}
+        <div class="card bg-base-100 shadow mb-4">
+          <div class="card-body p-0">
+            <div class="overflow-x-auto">
+              ${(() => {
+        const items = data.value.items;
+        const renderValue = val => {
+          if (val == null) return '';
+          if (typeof val === 'boolean') return val ? '✔' : '';
+          if (typeof val === 'object') return JSON.stringify(val);
+          return String(val);
+        };
+        return html`
+                  <table class="table w-full table-zebra">
+                    <thead>
+                      <tr>
+                        ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${items.map(item => html`
+                        <tr>
+                          ${visibleColumns.value.map(key => html`<td>${renderValue(item[key])}</td>`)}
+                        </tr>
+                      `)}
+                    </tbody>
+                  </table>
+                `;
+      })()}
+            </div>
+            <div class="card-actions justify-center p-4">
+              <${Pagination}
+                page=${page.value}
+                totalPages=${data.value.totalPages}
+                prevPage=${prevPage}
+                nextPage=${nextPage}
+                goPage=${goPage}
+              />
+            </div>
+          </div>
         </div>
-        <${Pagination}
-          page=${page.value}
-          totalPages=${data.value.totalPages}
-          prevPage=${prevPage}
-          nextPage=${nextPage}
-          goPage=${goPage}
-        />
       `}
       ${data.value && data.value.items && data.value.items.length === 0 && html`
         <p class="text-center">No ${route} found.</p>
