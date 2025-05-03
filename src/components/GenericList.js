@@ -146,6 +146,12 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
     visibleColumns.value = allKeys.filter(k => newSet.has(k));
   };
 
+  // Map field to column metadata for custom rendering
+  const columnsMap = {};
+  if (columnsProvided) {
+    columns.forEach(c => { columnsMap[c.field] = c; });
+  }
+
   return html`
     <div class="flex flex-col h-full">
       <h1 class="text-2xl font-bold mb-4">${title}</h1>
@@ -268,7 +274,16 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
                     <tbody>
                       ${items.map(item => html`
                         <tr class="hover:bg-base-200">
-                          ${visibleColumns.value.map(key => html`<td>${renderValue(item[key])}</td>`)}
+                          ${visibleColumns.value.map(key => {
+                            const colMeta = columnsMap[key] || {};
+                            if (colMeta.component) {
+                              return html`<td><${colMeta.component} value=${item[key]} item=${item} /></td>`;
+                            }
+                            if (colMeta.render) {
+                              return html`<td>${colMeta.render(item[key], item)}</td>`;
+                            }
+                            return html`<td>${renderValue(item[key])}</td>`;
+                          })}
                         </tr>
                       `)}
                     </tbody>

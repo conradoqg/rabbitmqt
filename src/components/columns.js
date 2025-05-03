@@ -1,4 +1,9 @@
 // Column metadata definitions for GenericList component
+// Each column metadata object may include the following properties:
+//   field: string - key in the data item
+//   displayName: string - column header label
+//   component: Preact component (optional) - custom cell component, receives props { value, item }
+//   render: function (optional) - custom render function, signature (value, item) => html
 export const columnsConfig = {
   exchanges: [
     { field: 'arguments', displayName: 'Arguments' },
