@@ -147,7 +147,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
   };
 
   return html`
-    <div>
+    <div class="flex flex-col h-full">
       <h1 class="text-2xl font-bold mb-4">${title}</h1>
       <div class="flex flex-wrap justify-between items-center mb-4">
         <div class="flex flex-wrap items-center gap-4">
@@ -173,6 +173,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
               type="text"
               placeholder="Search"
               value=${searchName.value}
+              disabled=${loading.value}
               onInput=${e => (searchName.value = e.target.value)}
               onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); } }}
             />
@@ -248,7 +249,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
       ${data.value && data.value.items && data.value.items.length > 0 && html`
         <div class="card bg-base-100 shadow mb-4">
           <div class="card-body p-0">
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-21rem)]">
               ${(() => {
         const items = data.value.items;
         const renderValue = val => {
@@ -258,7 +259,7 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
           return String(val);
         };
         return html`
-                  <table class="table table-xs table-pin-rows w-full">
+                  <table class="table table-xs table-pin-rows w-full max-h-[calc(100vh-21rem)]">
                     <thead>
                       <tr>
                         ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}

@@ -8,7 +8,7 @@ import Queues from './components/Queues.js';
 
 export default function App() {
   return html`
-    <div>
+    <div class="h-screen flex flex-col">
       <${NavBar}/>
 
       <section class="py-6">
