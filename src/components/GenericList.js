@@ -311,7 +311,7 @@ export default function GenericList({
         }
         const showHeaderGroups = headerGroups.some(hg => hg.group);
         return html`
-                  <table class="table table-xs w-full max-h-[calc(100vh-21rem)]">
+                  <table class="table table-xs table-auto w-full min-w-max max-h-[calc(100vh-21rem)] whitespace-nowrap">
                     <thead>
                       ${showHeaderGroups && html`
                         <tr>
