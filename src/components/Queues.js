@@ -7,7 +7,7 @@ export default function Queues() {
     <${GenericList}
       title="Queues"
       route="queues"
-      newFieldSortDir="desc"
+      defaultSortDir="desc"
       columns=${columnsConfig.queues}
     />`;
 }

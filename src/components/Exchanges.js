@@ -7,7 +7,8 @@ export default function Exchanges() {
     <${GenericList}
       title="Exchanges"
       route="exchanges"
-      newFieldSortDir="asc"
+      defaultSortDir="desc"
+      defaultSortField="message_stats.publish_in_details.rate"
       columns=${columnsConfig.exchanges}
     />`;
 }

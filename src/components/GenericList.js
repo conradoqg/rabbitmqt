@@ -4,13 +4,21 @@ import { useSignal } from '@preact/signals';
 import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab } from '../store.js';
 import Pagination from './Pagination.js';
 
-export default function GenericList({ title, route, columns, newFieldSortDir = 'asc' }) {
+export default function GenericList({
+  title,
+  route,
+  columns,
+  // initial sort field and direction
+  defaultSortField = 'name',
+  defaultSortDir = 'asc'
+}) {
   const data = useSignal(null);
   const loading = useSignal(false);
   const error = useSignal(null);
   const page = useSignal(1);
-  const sortField = useSignal('name');
-  const sortDir = useSignal('asc');
+  // Sort field and direction, initialized from props
+  const sortField = useSignal(defaultSortField);
+  const sortDir = useSignal(defaultSortDir);
   const selectedVhost = useSignal('all');
   const itemsPerPage = useSignal(PAGE_SIZE);
   const searchName = useSignal('');
@@ -53,12 +61,13 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
     }
   }
 
+  // Toggle sort direction, resetting to default on new field
   function changeSort(field) {
     if (sortField.value === field) {
       sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc';
     } else {
       sortField.value = field;
-      sortDir.value = newFieldSortDir;
+      sortDir.value = defaultSortDir;
     }
     page.value = 1;
     fetchList();
