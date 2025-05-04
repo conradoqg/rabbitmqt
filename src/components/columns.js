@@ -1,3 +1,5 @@
+import { html } from 'htm/preact';
+
 // Column metadata definitions for GenericList component
 // Each column metadata object may include the following properties:
 //   field: string - key in the data item
@@ -8,15 +10,21 @@ export const columnsConfig = {
   exchanges: [
     { field: 'vhost', displayName: 'Vhost', group: '' },
     { field: 'name', displayName: 'Name', group: '' },
-    { field: 'message_stats', displayName: 'Message Stats', group: 'Stats' },
     { field: 'message_stats.publish_in_details.rate', displayName: 'Publish In', render: (value) => `${value != null ? value.toFixed(2) : (0.0).toFixed(2)}/s`, group: 'Stats' },
+    { field: 'message_stats.publish_ou_details.rate', displayName: 'Publish Out', render: (value) => `${value != null ? value.toFixed(2) : (0.0).toFixed(2)}/s`, group: 'Stats' },
     { field: 'policy', displayName: 'Policy', group: 'Settings' },
-    { field: 'auto_delete', displayName: 'Auto Delete', group: 'Settings' },
-    { field: 'durable', displayName: 'Durable', group: 'Settings' },
-    { field: 'internal', displayName: 'Internal', group: 'Settings' },
+    { field: 'auto_delete', displayName: 'AD', group: 'Settings' },
+    { field: 'durable', displayName: 'D', group: 'Settings' },
+    { field: 'internal', displayName: 'I', group: 'Settings' },
     { field: 'type', displayName: 'Type', group: 'Settings' },
-    { field: 'arguments', displayName: 'Arguments', group: 'Settings' },
-    { field: 'user_who_performed_action', displayName: 'User Who Performed Action', group: 'Audit' },
+    {
+      field: 'arguments', displayName: 'Arguments', group: 'Settings', component: ({ value }) =>
+        typeof (value) == 'object' ?
+          html`<div>${Object.entries(value).map(([argKey, argValue]) => html`<span class="badge badge-xs" style="gap: unset"><b>${argKey}</b>: ${argValue}</span>`)}</div>`
+          :
+          ''
+    },
+    { field: 'user_who_performed_action', displayName: 'User', group: 'Audit' },
   ],
   queues: [
     { field: 'arguments', displayName: 'Arguments', group: 'Settings' },

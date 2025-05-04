@@ -272,7 +272,7 @@ export default function GenericList({
         const items = data.value.items;
         const renderValue = val => {
           if (val == null) return '';
-          if (typeof val === 'boolean') return val ? '✔' : '';
+          if (typeof val === 'boolean') return val ? '✔' : '✖';
           if (typeof val === 'object') return JSON.stringify(val);
           return String(val);
         };
