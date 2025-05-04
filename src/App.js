@@ -12,10 +12,10 @@ export default function App() {
       <${NavBar}/>
 
       <section class="py-6">
-        <div class="container mx-auto px-4">
+        <div class="w-full px-4">
           <${Tabs}/>
 
-          <div>
+          <div class="m-4">
             <div hidden=${activeTab.value !== 'overview'}><${Overview}/></div>
             <div hidden=${activeTab.value !== 'exchanges'}><${Exchanges}/></div>
             <div hidden=${activeTab.value !== 'queues'}><${Queues}/></div>

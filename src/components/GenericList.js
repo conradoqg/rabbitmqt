@@ -26,6 +26,10 @@ export default function GenericList({
   const visibleColumns = useSignal([]);
   // Determine if hard-coded columns metadata is provided
   const columnsProvided = Array.isArray(columns) && columns.length > 0;
+  // Prepare effective columns: shortName is header label, displayName is full display name (from tooltip)
+  // const effectiveColumns = columnsProvided
+  //   ? columns.map(c => ({ ...c, shortName: c.shortName, displayName: c.displayName }))
+  //   : [];
 
   async function fetchList() {
     if (!url.value || !username.value) {
@@ -106,7 +110,7 @@ export default function GenericList({
   const headerNamesMap = {};
   if (columnsProvided) {
     allKeys = columns.map(c => c.field);
-    columns.forEach(c => { headerNamesMap[c.field] = c.displayName; });
+    columns.forEach(c => { headerNamesMap[c.field] = c.shortName; });
   } else {
     const keySet = new Set();
     items.forEach(item => Object.keys(item).forEach(k => keySet.add(k)));
@@ -155,7 +159,7 @@ export default function GenericList({
     visibleColumns.value = allKeys.filter(k => newSet.has(k));
   };
 
-  // Map field to column metadata for custom rendering
+  // Map field to column metadata for custom rendering and labels
   const columnsMap = {};
   if (columnsProvided) {
     columns.forEach(c => { columnsMap[c.field] = c; });
@@ -196,7 +200,7 @@ export default function GenericList({
               onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); } }}
             />
             <button
-              class=${`btn ${searchUseRegex.value ? 'btn-secondary' : ''} join-item`}
+              class=${`btn ${searchUseRegex.value ? 'btn-accent' : ''} join-item`}
               onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
               disabled=${loading.value}
             ><i class="mdi mdi-regex"></i></button>
@@ -219,11 +223,12 @@ export default function GenericList({
               disabled=${loading.value}
             >
               ${allKeys.map(key => html`
-                <option key=${key} value=${key}>${headerNamesMap[key] || key}</option>
+                <option key=${key} value=${key}>${columnsMap[key]?.displayName || headerNamesMap[key] || key}</option>
               `)}
             </select>
             <select
               class="select select-bordered join-item"
+              style="width:auto"
               value=${sortDir.value}
               onChange=${e => { sortDir.value = e.target.value }}
               disabled=${loading.value}
@@ -239,29 +244,25 @@ export default function GenericList({
           </div>
           <div class="dropdown dropdown-end">
             <label tabindex="0" class="btn btn-secondary" disabled=${loading.value}><i class="mdi mdi-view-column"></i></label>
-            <ul
-              tabindex="0"
-              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
-            >
+            <div tabindex="0" class="dropdown-content shadow bg-base-100 rounded-box w-52 max-h-60 overflow-y-auto p-2 flex flex-col gap-2">
               ${allKeys.map(key => html`
-                <li>
-                  <label class="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked=${visibleColumns.value.includes(key)}
-                      onChange=${() => toggleColumn(key)}
-                    /> ${headerNamesMap[key] || key}
-                  </label>
-                </li>
+                <label class="flex items-center gap-2 whitespace-normal">
+                  <input
+                    type="checkbox"
+                    checked=${visibleColumns.value.includes(key)}
+                    onChange=${() => toggleColumn(key)}
+                  />
+                  <span>${columnsMap[key]?.displayName || headerNamesMap[key] || key}</span>
+                </label>
               `)}
-            </ul>
+            </div>
           </div>
         </div>
         <button
-          class=${`btn btn-primary ${loading.value ? 'loading' : ''}`}
+          class=${`btn btn-primary`}
           onClick=${fetchList}
           disabled=${loading.value}
-        >Refresh</button>
+        >${loading.value ? html`<span class="loading loading-spinner"></span>` : 'Refresh'}</button>
       </div>      
       ${error.value && html`<div class="alert alert-error mb-4"><div>${error.value}</div></div>`}
       ${data.value && data.value.items && data.value.items.length > 0 && html`
@@ -314,16 +315,18 @@ export default function GenericList({
                       `}
                       <tr>
                         ${visibleColumns.value.map(key => {
-                          const colMeta = columnsMap[key] || {};
-                          return html`
-                            <th
-                              class="sticky top-7 bg-base-100 z-10"
-                              title=${colMeta.tooltip}
-                            >
+          const colMeta = columnsMap[key] || {};
+          return html`
+                            <th class="sticky top-7 bg-base-100 z-10">
                               ${headerNamesMap[key] || key}
+                              ${colMeta.displayName && html`
+                                <span class="ml-1 cursor-help" title=${colMeta.displayName}>
+                                  <i class="mdi mdi-information"></i>
+                                </span>
+                              `}
                             </th>
                           `;
-                        })}
+        })}
                       </tr>
                     </thead>
                     <tbody>
@@ -356,6 +359,7 @@ export default function GenericList({
                 goPage=${goPage}
                 itemsPerPage=${itemsPerPage.value}
                 onChangeItemsPerPage=${changePageSize}
+                disabled=${loading.value}
               />
             </div>
           </div>

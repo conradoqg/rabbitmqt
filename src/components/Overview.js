@@ -10,9 +10,9 @@ export default function Overview() {
       <div class="flex flex-wrap justify-between items-center mb-4">
         <div class="flex flex-wrap items-center gap-4"></div>
         <button 
-          class=${`btn btn-primary ${loading.value ? 'loading' : ''}`}          
+          class=${`btn btn-primary`}          
           onClick=${fetchData} 
-          disabled=${loading.value}>Refresh
+          disabled=${loading.value}>${loading.value ? html`<span class="loading loading-spinner"></span>` : 'Refresh'}
         </button>
       </div>      
       ${error.value && html`<div class="alert alert-error mb-4"><div>${error.value}</div></div>`}
