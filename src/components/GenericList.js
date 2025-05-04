@@ -276,27 +276,64 @@ export default function GenericList({
           if (typeof val === 'object') return JSON.stringify(val);
           return String(val);
         };
+        // Compute header grouping based on column metadata
+        const headerGroups = [];
+        if (columnsProvided) {
+          const groupList = visibleColumns.value.map(key => columnsMap[key]?.group || '');
+          let lastGroup = null;
+          let span = 0;
+          groupList.forEach((g, idx) => {
+            if (idx === 0) {
+              lastGroup = g;
+              span = 1;
+            } else if (g === lastGroup) {
+              span++;
+            } else {
+              headerGroups.push({ group: lastGroup, span });
+              lastGroup = g;
+              span = 1;
+            }
+          });
+          headerGroups.push({ group: lastGroup, span });
+        }
+        const showHeaderGroups = headerGroups.some(hg => hg.group);
         return html`
-                  <table class="table table-xs table-pin-rows w-full max-h-[calc(100vh-21rem)]">
+                  <table class="table table-xs w-full max-h-[calc(100vh-21rem)]">
                     <thead>
+                      ${showHeaderGroups && html`
+                        <tr>
+                          ${headerGroups.map(hg => html`
+                            <th
+                              colspan=${hg.span}
+                              class="sticky top-0 bg-base-100 z-20 text-center"
+                            >
+                              ${hg.group}
+                            </th>
+                          `)}
+                        </tr>
+                      `}
                       <tr>
-                        ${visibleColumns.value.map(key => html`<th>${headerNamesMap[key] || key}</th>`)}
+                        ${visibleColumns.value.map(key => html`
+                          <th class="sticky top-7 bg-base-100 z-10">
+                            ${headerNamesMap[key] || key}
+                          </th>
+                        `)}
                       </tr>
                     </thead>
                     <tbody>
                       ${items.map(item => html`
                         <tr class="hover:bg-base-200">
                           ${visibleColumns.value.map(key => {
-                            const colMeta = columnsMap[key] || {};
-                            const val = getValueByPath(item, key);
-                            if (colMeta.component) {
-                              return html`<td><${colMeta.component} value=${val} item=${item} /></td>`;
-                            }
-                            if (colMeta.render) {
-                              return html`<td>${colMeta.render(val, item)}</td>`;
-                            }
-                            return html`<td>${renderValue(val)}</td>`;
-                          })}
+          const colMeta = columnsMap[key] || {};
+          const val = getValueByPath(item, key);
+          if (colMeta.component) {
+            return html`<td><${colMeta.component} value=${val} item=${item} /></td>`;
+          }
+          if (colMeta.render) {
+            return html`<td>${colMeta.render(val, item)}</td>`;
+          }
+          return html`<td>${renderValue(val)}</td>`;
+        })}
                         </tr>
                       `)}
                     </tbody>
