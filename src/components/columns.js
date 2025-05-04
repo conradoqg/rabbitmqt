@@ -6,6 +6,8 @@ import { html } from 'htm/preact';
 //   displayName: string - column header label
 //   component: Preact component (optional) - custom cell component, receives props { value, item }
 //   render: function (optional) - custom render function, signature (value, item) => html
+//   group: string (optional) - group name for grouping columns
+//   tooltip: string (optional) - tooltip text for the column header
 export const columnsConfig = {
   exchanges: [
     { field: 'vhost', displayName: 'Vhost', group: '' },
@@ -13,14 +15,21 @@ export const columnsConfig = {
     { field: 'message_stats.publish_in_details.rate', displayName: 'Publish In', render: (value) => `${value != null ? value.toFixed(2) : (0.0).toFixed(2)}/s`, group: 'Stats' },
     { field: 'message_stats.publish_ou_details.rate', displayName: 'Publish Out', render: (value) => `${value != null ? value.toFixed(2) : (0.0).toFixed(2)}/s`, group: 'Stats' },
     { field: 'policy', displayName: 'Policy', group: 'Settings' },
-    { field: 'auto_delete', displayName: 'AD', group: 'Settings' },
-    { field: 'durable', displayName: 'D', group: 'Settings' },
-    { field: 'internal', displayName: 'I', group: 'Settings' },
+    { field: 'auto_delete', displayName: 'AD', group: 'Settings', tooltip: 'Auto Delete' },
+    { field: 'durable', displayName: 'D', group: 'Settings', tooltip: 'Durable' },
+    { field: 'internal', displayName: 'I', group: 'Settings', tooltip: 'Internal' },
     { field: 'type', displayName: 'Type', group: 'Settings' },
     {
-      field: 'arguments', displayName: 'Arguments', group: 'Settings', component: ({ value }) =>
-        typeof (value) == 'object' ?
-          html`<div>${Object.entries(value).map(([argKey, argValue]) => html`<span class="badge badge-xs" style="gap: unset"><b>${argKey}</b>: ${argValue}</span>`)}</div>`
+      field: 'arguments', displayName: 'A', group: 'Settings', component: ({ value }) =>
+        typeof value === 'object' && value && Object.keys(value).length > 0 ?
+          html`
+            <span
+              class="cursor-help"
+              title=${Object.entries(value).map(([key, val]) => `${key}: ${val}`).join('\n')}
+            >
+              <i class="mdi mdi-information"></i>
+            </span>
+          `
           :
           ''
     },

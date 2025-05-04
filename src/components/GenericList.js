@@ -313,11 +313,17 @@ export default function GenericList({
                         </tr>
                       `}
                       <tr>
-                        ${visibleColumns.value.map(key => html`
-                          <th class="sticky top-7 bg-base-100 z-10">
-                            ${headerNamesMap[key] || key}
-                          </th>
-                        `)}
+                        ${visibleColumns.value.map(key => {
+                          const colMeta = columnsMap[key] || {};
+                          return html`
+                            <th
+                              class="sticky top-7 bg-base-100 z-10"
+                              title=${colMeta.tooltip}
+                            >
+                              ${headerNamesMap[key] || key}
+                            </th>
+                          `;
+                        })}
                       </tr>
                     </thead>
                     <tbody>
