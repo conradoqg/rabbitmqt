@@ -151,6 +151,9 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
   if (columnsProvided) {
     columns.forEach(c => { columnsMap[c.field] = c; });
   }
+  // Helper to get nested value by dot-separated path (e.g., 'a.b.c')
+  const getValueByPath = (obj, path) =>
+    path.split('.').reduce((acc, key) => (acc != null ? acc[key] : undefined), obj);
 
   return html`
     <div class="flex flex-col h-full">
@@ -276,13 +279,14 @@ export default function GenericList({ title, route, columns, newFieldSortDir = '
                         <tr class="hover:bg-base-200">
                           ${visibleColumns.value.map(key => {
                             const colMeta = columnsMap[key] || {};
+                            const val = getValueByPath(item, key);
                             if (colMeta.component) {
-                              return html`<td><${colMeta.component} value=${item[key]} item=${item} /></td>`;
+                              return html`<td><${colMeta.component} value=${val} item=${item} /></td>`;
                             }
                             if (colMeta.render) {
-                              return html`<td>${colMeta.render(item[key], item)}</td>`;
+                              return html`<td>${colMeta.render(val, item)}</td>`;
                             }
-                            return html`<td>${renderValue(item[key])}</td>`;
+                            return html`<td>${renderValue(val)}</td>`;
                           })}
                         </tr>
                       `)}

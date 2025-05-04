@@ -6,16 +6,17 @@
 //   render: function (optional) - custom render function, signature (value, item) => html
 export const columnsConfig = {
   exchanges: [
-    { field: 'arguments', displayName: 'Arguments' },
+    { field: 'vhost', displayName: 'Vhost' },
+    { field: 'name', displayName: 'Name' },
+    { field: 'message_stats', displayName: 'Message Stats' },
+    { field: 'message_stats.publish_in_details.rate', displayName: 'Publish In', render: (value) => `${value != null ? value.toFixed(2) : (0.0).toFixed(2)}/s` },
+    { field: 'policy', displayName: 'Policy' },
     { field: 'auto_delete', displayName: 'Auto Delete' },
     { field: 'durable', displayName: 'Durable' },
     { field: 'internal', displayName: 'Internal' },
-    { field: 'message_stats', displayName: 'Message Stats' },
-    { field: 'name', displayName: 'Name' },
-    { field: 'policy', displayName: 'Policy' },
     { field: 'type', displayName: 'Type' },
+    { field: 'arguments', displayName: 'Arguments' },
     { field: 'user_who_performed_action', displayName: 'User Who Performed Action' },
-    { field: 'vhost', displayName: 'Vhost' },
   ],
   queues: [
     { field: 'arguments', displayName: 'Arguments' },
