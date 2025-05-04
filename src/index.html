@@ -21,7 +21,10 @@
             "react": "https://esm.sh/preact@10.23.1/compat",
             "react/": "https://esm.sh/preact@10.23.1/compat/",
             "react-dom": "https://esm.sh/preact@10.23.1/compat",
-            "@preact/signals": "https://esm.sh/@preact/signals?external=preact"
+            "@preact/signals": "https://esm.sh/@preact/signals?external=preact",
+            "dayjs": "https://esm.sh/dayjs@1.11.10",
+            "dayjs/plugin/relativeTime": "https://esm.sh/dayjs@1.11.10/plugin/relativeTime",
+            "numeral": "https://esm.sh/numeral@2.0.6"
           }
         }
     </script>
@@ -33,7 +36,10 @@
   <script type="module">
     import { render } from 'preact';
     import { html } from 'htm/preact';
+    import dayjs from 'dayjs';
+    import relativeTime from 'dayjs/plugin/relativeTime';
     import App from './App.js';
+    dayjs.extend(relativeTime)
 
     render(html`<${App} />`, document.getElementById('app'));
   </script>

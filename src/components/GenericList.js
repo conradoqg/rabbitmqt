@@ -122,8 +122,11 @@ export default function GenericList({
 
   useEffect(() => {
     if (columnsProvided) {
-      // initialize visible columns to metadata-defined fields
-      visibleColumns.value = allKeys;
+      // initialize visible columns based on metadata-defined fields
+      // supports a 'visible' flag in column metadata (default true)
+      visibleColumns.value = columns
+        .filter(c => c.visible !== false)
+        .map(c => c.field);
     } else if (allKeys.length > 0 && visibleColumns.value.length === 0) {
       visibleColumns.value = allKeys;
     }
@@ -223,7 +226,11 @@ export default function GenericList({
               disabled=${loading.value}
             >
               ${allKeys.map(key => html`
-                <option key=${key} value=${key}>${columnsMap[key]?.displayName || headerNamesMap[key] || key}</option>
+                <option key=${key} value=${key}>
+                  ${columnsMap[key]?.group
+      ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+      : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+                </option>
               `)}
             </select>
             <select
@@ -252,7 +259,11 @@ export default function GenericList({
                     checked=${visibleColumns.value.includes(key)}
                     onChange=${() => toggleColumn(key)}
                   />
-                  <span>${columnsMap[key]?.displayName || headerNamesMap[key] || key}</span>
+                  <span>
+                    ${columnsMap[key]?.group
+          ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+          : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+                  </span>
                 </label>
               `)}
             </div>
@@ -275,6 +286,7 @@ export default function GenericList({
           if (val == null) return '';
           if (typeof val === 'boolean') return val ? '✔' : '✖';
           if (typeof val === 'object') return JSON.stringify(val);
+          if (typeof val === 'number') return val.toFixed(2)
           return String(val);
         };
         // Compute header grouping based on column metadata
@@ -306,7 +318,7 @@ export default function GenericList({
                           ${headerGroups.map(hg => html`
                             <th
                               colspan=${hg.span}
-                              class="sticky top-0 bg-base-100 z-20 text-center"
+                              class="sticky top-0 bg-base-100 z-20 text-center border-l border-l-base-300 border-r border-r-base-300"
                             >
                               ${hg.group}
                             </th>
@@ -316,8 +328,9 @@ export default function GenericList({
                       <tr>
                         ${visibleColumns.value.map(key => {
           const colMeta = columnsMap[key] || {};
+          const alignClass = colMeta.align ? `text-${colMeta.align}` : '';
           return html`
-                            <th class="sticky top-7 bg-base-100 z-10">
+                            <th class=${`sticky top-7 bg-base-100 z-10 ${alignClass}`}>
                               ${headerNamesMap[key] || key}
                               ${colMeta.displayName && html`
                                 <span class="ml-1 cursor-help" title=${colMeta.displayName}>
@@ -333,16 +346,17 @@ export default function GenericList({
                       ${items.map(item => html`
                         <tr class="hover:bg-base-200">
                           ${visibleColumns.value.map(key => {
-          const colMeta = columnsMap[key] || {};
-          const val = getValueByPath(item, key);
-          if (colMeta.component) {
-            return html`<td><${colMeta.component} value=${val} item=${item} /></td>`;
-          }
-          if (colMeta.render) {
-            return html`<td>${colMeta.render(val, item)}</td>`;
-          }
-          return html`<td>${renderValue(val)}</td>`;
-        })}
+            const colMeta = columnsMap[key] || {};
+            const val = getValueByPath(item, key);
+            const alignClass = colMeta.align ? `text-${colMeta.align}` : '';
+            if (colMeta.component) {
+              return html`<td class=${alignClass}><${colMeta.component} value=${val} item=${item} /></td>`;
+            }
+            if (colMeta.render) {
+              return html`<td class=${alignClass}>${colMeta.render(val, item)}</td>`;
+            }
+            return html`<td class=${alignClass}>${renderValue(val)}</td>`;
+          })}
                         </tr>
                       `)}
                     </tbody>
