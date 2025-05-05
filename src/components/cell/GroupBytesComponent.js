@@ -1,38 +1,26 @@
 import { html } from 'htm/preact';
-import RateRender from './RateRender.js';
+import ByteRender from './ByteRender.js';
 
-export default function MessageStatsComponent({ value }) {
-    const statsEntries = [
-        ['Ack', value?.ack_details?.rate],
-        ['Deliver', value?.deliver_details?.rate],
-        ['Deliver Get', value?.deliver_get_details?.rate],
-        ['Deliver No Ack', value?.deliver_no_ack_details?.rate],
-        ['Get Ack', value?.get_details?.rate],
-        ['Get Empty Ack', value?.get_empty_details?.rate],
-        ['Get No Ack', value?.get_no_ack_details?.rate],
-        ['Redeliver', value?.redeliver_details?.rate],
+export default function GroupBytesComponent({ item }) {
+    const entries = [
+        ['Total', item.message_bytes],
+        ['Ready', item.message_bytes_ready],
+        ['Unack', item.message_bytes_unacknowledged],
     ];
 
     const colorMap = {
-        'Ack': 'bg-success',
-        'Deliver': 'bg-info',
-        'Deliver Get': 'bg-secondary',
-        'Deliver No Ack': 'bg-warning',
-        'Get Ack': 'bg-primary',
-        'Get Empty Ack': 'bg-neutral',
-        'Get No Ack': 'bg-warning',
-        'Redeliver': 'bg-error',
+        'Total': 'bg-primary',
+        'Ready': 'bg-success',
+        'Unack': 'bg-warning',
     };
 
-    const items = statsEntries.map(([key, rate]) => ({
+    const items = entries.map(([key, val]) => ({
         key,
-        rate: rate != null ? rate : 0,
-        text: RateRender(rate),
+        text: ByteRender(val),
         colorClass: colorMap[key] || 'bg-base-200',
     }));
 
-    // Number of columns for message rate stats (4 columns across)
-    const cols = 4;
+    const cols = items.length;
     const rows = Math.ceil(items.length / cols);
 
     return html`
@@ -42,7 +30,7 @@ export default function MessageStatsComponent({ value }) {
                     const rowItems = items.slice(rowIndex * cols, rowIndex * cols + cols);
                     return html`
                         <tr>
-                        ${rowItems.map(item => html`
+                            ${rowItems.map(item => html`
                                 <td class="px-1 py-0 align-top">
                                     <div class="flex items-center">
                                         <span class="${item.colorClass} inline-block w-2 h-2 mr-1"></span>
@@ -53,7 +41,6 @@ export default function MessageStatsComponent({ value }) {
                                     </div>
                                 </td>
                             `)}
-                            ${rowItems.length < cols ? Array.from({ length: cols - rowItems.length }).map(() => html`<td></td>`) : ''}
                         </tr>
                     `;
                 })}

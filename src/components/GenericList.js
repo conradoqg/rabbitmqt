@@ -121,13 +121,12 @@ export default function GenericList({
   }
 
   useEffect(() => {
-    if (columnsProvided) {
-      // initialize visible columns based on metadata-defined fields
-      // supports a 'visible' flag in column metadata (default true)
+    // Initialize visible columns only once (when none are selected)
+    if (columnsProvided && visibleColumns.value.length === 0) {
       visibleColumns.value = columns
         .filter(c => c.visible !== false)
         .map(c => c.field);
-    } else if (allKeys.length > 0 && visibleColumns.value.length === 0) {
+    } else if (!columnsProvided && allKeys.length > 0 && visibleColumns.value.length === 0) {
       visibleColumns.value = allKeys;
     }
   }, [data.value]);
@@ -226,12 +225,12 @@ export default function GenericList({
               disabled=${loading.value}
             >
               ${allKeys
-                .filter(key => columnsMap[key]?.sortable !== false)
-                .map(key => html`
+      .filter(key => columnsMap[key]?.sortable !== false)
+      .map(key => html`
                   <option key=${key} value=${key}>
                     ${columnsMap[key]?.group
-      ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
-      : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+          ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+          : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
                   </option>
                 `)}
             </select>
@@ -251,9 +250,9 @@ export default function GenericList({
               disabled=${loading.value}
             ><i class="mdi mdi-sort"></i></button>
           </div>
-          <div class="dropdown dropdown-end">
+          <div class="dropdown dropdown-center">
             <label tabindex="0" class="btn btn-secondary" disabled=${loading.value}><i class="mdi mdi-view-column"></i></label>
-            <div tabindex="0" class="dropdown-content shadow bg-base-100 rounded-box w-52 max-h-60 overflow-y-auto p-2 flex flex-col gap-2">
+            <div tabindex="0" class="dropdown-content shadow bg-base-100 rounded-box w-80 max-h-80 overflow-y-auto p-2 flex flex-col gap-2">
               ${allKeys.map(key => html`
                 <label class="flex items-center gap-2 whitespace-normal">
                   <input
@@ -263,8 +262,8 @@ export default function GenericList({
                   />
                   <span>
                     ${columnsMap[key]?.group
-          ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
-          : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+              ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+              : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
                   </span>
                 </label>
               `)}
@@ -348,17 +347,17 @@ export default function GenericList({
                       ${items.map(item => html`
                         <tr class="hover:bg-base-200">
                           ${visibleColumns.value.map(key => {
-            const colMeta = columnsMap[key] || {};
-            const val = getValueByPath(item, key);
-            const alignClass = colMeta.align ? `text-${colMeta.align}` : '';
-            if (colMeta.component) {
-              return html`<td class=${alignClass}><${colMeta.component} value=${val} item=${item} /></td>`;
-            }
-            if (colMeta.render) {
-              return html`<td class=${alignClass}>${colMeta.render(val, item)}</td>`;
-            }
-            return html`<td class=${alignClass}>${renderValue(val)}</td>`;
-          })}
+          const colMeta = columnsMap[key] || {};
+          const val = getValueByPath(item, key);
+          const alignClass = colMeta.align ? `text-${colMeta.align}` : '';
+          if (colMeta.component) {
+            return html`<td class=${alignClass}><${colMeta.component} value=${val} item=${item} /></td>`;
+          }
+          if (colMeta.render) {
+            return html`<td class=${alignClass}>${colMeta.render(val, item)}</td>`;
+          }
+          return html`<td class=${alignClass}>${renderValue(val)}</td>`;
+        })}
                         </tr>
                       `)}
                     </tbody>
