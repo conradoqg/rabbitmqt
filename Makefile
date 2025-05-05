@@ -14,7 +14,7 @@ CONSUMER_CONFIRM ?= false   # enable consumer confirms/manualacks (false|true)
 MEMORY ?= 2048m  # container memory limit (e.g. 512m, 1g)
 CPUS   ?= 0.5    # container CPU quota in cores (e.g. 1, 2)
 
-.PHONY: start-rabbitmq wait-rabbitmq test-rabbitmq stop-rabbitmq clean
+.PHONY: start-rabbitmq wait-rabbitmq test-rabbitmq stop-rabbitmq clean build-proxy
 .PHONY: test-rabbitmq-tmux
 
 start-rabbitmq:
@@ -72,3 +72,7 @@ test-rabbitmq-tmux:
 	@docker stop rabbitmq-limited || true
 
 clean: stop-rabbitmq
+build-proxy:
+	@echo "Building proxy-server..."
+	@mkdir -p output
+	@cd src && go build -o ../output/proxy-server .

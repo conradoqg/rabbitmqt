@@ -23,7 +23,7 @@ export default function GroupMessageRateComponent({ value }) {
         'Deliver No Ack': 'bg-warning',
         'Get': 'bg-primary',
         'Get Empty': 'bg-neutral',
-        'Get No Ack': 'bg-warning',
+        'Get No Ack': 'bg-warning-content',
     };
 
     const items = statsEntries.map(([key, rate, tooltip]) => ({

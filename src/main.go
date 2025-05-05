@@ -1,13 +1,18 @@
 package main
 
 import (
-	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
+   "embed"
+   "io"
+   "io/fs"
+   "log"
+   "net/http"
+   "net/url"
+   "os"
+   "strings"
+   "time"
 )
+//go:embed ui
+var embeddedUI embed.FS
 
 // addCORS sets CORS headers to allow cross-origin access
 func addCORS(w http.ResponseWriter) {
@@ -78,8 +83,21 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// serve static files from current directory
-	http.Handle("/", http.FileServer(http.Dir(".")))
+	// serve static files: from local ./ui if available, else from embedded assets
+	var fileSystem http.FileSystem
+	if stat, err := os.Stat("./ui"); err == nil && stat.IsDir() {
+		fileSystem = http.Dir("./ui")
+		log.Println("Serving UI from local ./ui directory")
+	} else {
+		// serve embedded UI assets
+		subFS, err := fs.Sub(embeddedUI, "ui")
+		if err != nil {
+			log.Fatalf("failed to access embedded UI assets: %v", err)
+		}
+		fileSystem = http.FS(subFS)
+		log.Println("Serving embedded UI assets")
+	}
+	http.Handle("/", http.FileServer(fileSystem))
 	// handle path-based proxying for any upstream URL under /proxy/
 	http.HandleFunc("/proxy/", proxyRawHandler)
 	log.Println("Starting server on :8080")
