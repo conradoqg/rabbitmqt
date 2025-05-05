@@ -1,6 +1,6 @@
 import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
-import MessageStatsComponent from './cell/MessageStatsComponent.js';
+import GroupMessageRateComponent from './cell/GroupMessageRateComponent.js';
 import GroupMessagesComponent from './cell/GroupMessagesComponent.js';
 import GroupBytesComponent from './cell/GroupBytesComponent.js';
 import RecordComponent from './cell/RecordComponent.js';
@@ -32,7 +32,7 @@ const columns = [
   { group: 'Settings', field: 'exclusive_consumer_tag', shortName: 'Exclusive Consumer Tag', visible: false },
   { group: 'Settings', field: 'single_active_consumer_tag', shortName: 'Single Active Consumer Tag', visible: false },
   { group: 'Settings', field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', component: RecordComponent },
-  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', displayName: 'Message Rate Stats', sortable: false, component: MessageStatsComponent },
+  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', displayName: 'Message Rate Stats', sortable: false, component: GroupMessageRateComponent },
   { group: 'Message Rate', field: 'message_stats.ack_details.rate', shortName: 'Ack', displayName: 'Ack Rate', visible: false, render: RateRender },
   { group: 'Message Rate', field: 'message_stats.deliver_details.rate', shortName: 'Deliver', displayName: 'Deliver Rate', visible: false, render: RateRender },
   { group: 'Message Rate', field: 'message_stats.deliver_get_details.rate', shortName: 'Deliver Get', displayName: 'Deliver Get Rate', visible: false, render: RateRender },

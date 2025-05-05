@@ -4,8 +4,13 @@ import NumberRender from './NumberRender.js';
 export default function GroupMessagesComponent({ item }) {
     const entries = [
         ['Total', item.messages],
+        ['Paged Out', item.messages_paged_out],
+        ['Persistent', item.messages_persistent],
+        ['RAM', item.messages_ram],
         ['Ready', item.messages_ready],
-        ['Unack', item.messages_unacknowledged],
+        ['Ready RAM', item.messages_ready_ram],
+        ['Unacked', item.messages_unacknowledged],
+        ['Unacked RAM', item.messages_unacknowledged_ram],
     ];
 
     const colorMap = {
@@ -27,8 +32,8 @@ export default function GroupMessagesComponent({ item }) {
         <table class="table table-xs table-compact table-auto text-xs">
             <tbody>
                 ${Array.from({ length: rows }).map((_, rowIndex) => {
-                    const rowItems = items.slice(rowIndex * cols, rowIndex * cols + cols);
-                    return html`
+        const rowItems = items.slice(rowIndex * cols, rowIndex * cols + cols);
+        return html`
                         <tr>
                             ${rowItems.map(item => html`
                                 <td class="px-1 py-0 align-top">
@@ -43,7 +48,7 @@ export default function GroupMessagesComponent({ item }) {
                             `)}
                         </tr>
                     `;
-                })}
+    })}
             </tbody>
         </table>
     `;
