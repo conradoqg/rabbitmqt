@@ -24,6 +24,42 @@ export default function GenericList({
   const searchName = useSignal('');
   const searchUseRegex = useSignal(false);
   const visibleColumns = useSignal([]);
+  // Initialize list state from URL search params
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get('tab') !== route) return;
+    const vh = sp.get('vhost');
+    if (vh) selectedVhost.value = vh;
+    const p = parseInt(sp.get('page'), 10);
+    if (!isNaN(p) && p > 0) page.value = p;
+    const sf = sp.get('sortField');
+    if (sf) sortField.value = sf;
+    const sd = sp.get('sortDir');
+    if (sd === 'asc' || sd === 'desc') sortDir.value = sd;
+    const ps = parseInt(sp.get('pageSize'), 10);
+    if (!isNaN(ps) && ps > 0) itemsPerPage.value = ps;
+    const s = sp.get('search');
+    if (s != null) searchName.value = s;
+    const rx = sp.get('regex');
+    if (rx === 'true' || rx === 'false') searchUseRegex.value = (rx === 'true');
+  }, []);
+
+  // Helper to update URL search params on state change
+  function updateURL() {
+    if (typeof window === 'undefined' || !window.history || !window.history.pushState) return;
+    const sp = new URLSearchParams(window.location.search);
+    sp.set('tab', route);
+    sp.set('vhost', selectedVhost.value);
+    sp.set('page', String(page.value));
+    sp.set('sortField', sortField.value);
+    sp.set('sortDir', sortDir.value);
+    sp.set('pageSize', String(itemsPerPage.value));
+    if (searchName.value) sp.set('search', searchName.value);
+    sp.set('regex', String(searchUseRegex.value));
+    window.history.pushState(null, '', `${window.location.pathname}?${sp.toString()}`);
+  }
+
   // Determine if hard-coded columns metadata is provided
   const columnsProvided = Array.isArray(columns) && columns.length > 0;
   // Prepare effective columns: shortName is header label, displayName is full display name (from tooltip)
@@ -75,12 +111,14 @@ export default function GenericList({
     }
     page.value = 1;
     fetchList();
+    updateURL();
   }
 
   function prevPage() {
     if (page.value > 1) {
       page.value--;
       fetchList();
+      updateURL();
     }
   }
 
@@ -88,6 +126,7 @@ export default function GenericList({
     if (data.value && page.value < data.value.totalPages) {
       page.value++;
       fetchList();
+      updateURL();
     }
   }
 
@@ -95,6 +134,7 @@ export default function GenericList({
     if (n !== page.value) {
       page.value = n;
       fetchList();
+      updateURL();
     }
   }
 
@@ -102,6 +142,7 @@ export default function GenericList({
     selectedVhost.value = vh;
     page.value = 1;
     fetchList();
+    updateURL();
   }
 
   const items = data.value?.items || [];
@@ -148,6 +189,7 @@ export default function GenericList({
     itemsPerPage.value = size;
     page.value = 1;
     fetchList();
+    updateURL();
   }
 
   const toggleColumn = key => {
@@ -199,7 +241,7 @@ export default function GenericList({
               value=${searchName.value}
               disabled=${loading.value}
               onInput=${e => (searchName.value = e.target.value)}
-              onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); } }}
+              onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); updateURL(); } }}
             />
             <button
               class=${`btn ${searchUseRegex.value ? 'btn-accent' : ''} join-item`}
@@ -208,12 +250,12 @@ export default function GenericList({
             ><i class="mdi mdi-regex"></i></button>
             <button
               class="btn btn-secondary join-item"
-              onClick=${() => { searchName.value = ''; fetchList(); }}
+              onClick=${() => { searchName.value = ''; fetchList(); updateURL(); }}
               disabled=${loading.value}
             ><i class="mdi mdi-cancel"></i></button>
             <button
               class="btn btn-secondary join-item"
-              onClick=${() => { page.value = 1; fetchList(); }}
+              onClick=${() => { page.value = 1; fetchList(); updateURL(); }}
               disabled=${loading.value}
             ><i class="mdi mdi-magnify"></i></button>
           </div>
@@ -246,7 +288,7 @@ export default function GenericList({
             </select>
             <button
               class="btn btn-secondary join-item"
-              onClick=${() => { page.value = 1; fetchList(); }}
+              onClick=${() => { page.value = 1; fetchList(); updateURL(); }}
               disabled=${loading.value}
             ><i class="mdi mdi-sort"></i></button>
           </div>

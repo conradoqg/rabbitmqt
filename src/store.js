@@ -60,8 +60,34 @@ export async function fetchData() {
 
 // Handle tab change: update activeTab and fetch data if needed
 export function changeTab(tab) {
+  // Update browser URL search params for deep-linking
+  if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+    const sp = new URLSearchParams(window.location.search);
+    sp.set('tab', tab);
+    const newSearch = sp.toString();
+    window.history.pushState(null, '', `${window.location.pathname}?${newSearch}`);
+  } else if (typeof window !== 'undefined') {
+    window.location.search = `?tab=${tab}`;
+  }
   activeTab.value = tab;
   // Component-specific data fetching should be handled within components
 }
 
 // Note: component-specific CRUD functions (exchanges/queues) have been moved to their respective components.
+
+// Initialize activeTab from URL search params and handle back/forward
+if (typeof window !== 'undefined') {
+  const allowedTabs = ['overview', 'exchanges', 'queues'];
+  const sp = new URLSearchParams(window.location.search);
+  const tabParam = sp.get('tab');
+  if (allowedTabs.includes(tabParam)) {
+    activeTab.value = tabParam;
+  }
+  window.addEventListener('popstate', () => {
+    const sp2 = new URLSearchParams(window.location.search);
+    const t = sp2.get('tab');
+    if (allowedTabs.includes(t)) {
+      activeTab.value = t;
+    }
+  });
+}
