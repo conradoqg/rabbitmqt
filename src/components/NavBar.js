@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { url, username, password, fetchData } from '../store.js';
+import { url, username, password, fetchData, overview } from '../store.js';
 
 export default function NavBar() {
   return html`
@@ -14,6 +14,7 @@ export default function NavBar() {
           placeholder="URL"
           value=${url.value}
           onInput=${e => (url.value = e.target.value)}
+          disabled=${overview.loading.value}
         />
         <input
           class="input input-bordered w-32"
@@ -21,6 +22,7 @@ export default function NavBar() {
           placeholder="Username"
           value=${username.value}
           onInput=${e => (username.value = e.target.value)}
+          disabled=${overview.loading.value}
         />
         <input
           class="input input-bordered w-32"
@@ -28,8 +30,15 @@ export default function NavBar() {
           placeholder="Password"
           value=${password.value}
           onInput=${e => (password.value = e.target.value)}
+          disabled=${overview.loading.value}
         />
-        <button class="btn btn-primary ml-2" onClick=${fetchData}>Connect</button>
+        <button
+          class=${`btn btn-primary ml-2`}
+          disabled=${overview.loading.value}
+          onClick=${fetchData}
+        >
+        ${overview.loading.value ? html`<span class="loading loading-spinner"></span>` : 'Connect'}
+        </button>
       </div>
     </nav>
   `;
