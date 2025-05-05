@@ -7,7 +7,7 @@ import Pagination from './Pagination.js';
 export default function GenericList({
   title,
   route,
-  columns,
+  columns, // optional array of column metadata; each may include: field, shortName, displayName, group, render, component, align, visible, sortable (default true)
   // initial sort field and direction
   defaultSortField = 'name',
   defaultSortDir = 'asc'
@@ -225,13 +225,15 @@ export default function GenericList({
               onChange=${e => { sortField.value = e.target.value }}
               disabled=${loading.value}
             >
-              ${allKeys.map(key => html`
-                <option key=${key} value=${key}>
-                  ${columnsMap[key]?.group
+              ${allKeys
+                .filter(key => columnsMap[key]?.sortable !== false)
+                .map(key => html`
+                  <option key=${key} value=${key}>
+                    ${columnsMap[key]?.group
       ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
       : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
-                </option>
-              `)}
+                  </option>
+                `)}
             </select>
             <select
               class="select select-bordered join-item"

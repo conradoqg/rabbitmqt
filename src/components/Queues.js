@@ -29,7 +29,7 @@ const columns = [
   { group: 'Settings', field: 'exclusive_consumer_tag', shortName: 'Exclusive Consumer Tag', visible: false },
   { group: 'Settings', field: 'single_active_consumer_tag', shortName: 'Single Active Consumer Tag', visible: false },
   { group: 'Settings', field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', component: RecordComponent },
-  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', component: MessageStatsComponent },
+  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', sortable: false, component: MessageStatsComponent },
   { group: 'Message Rate', field: 'message_stats.ack_details.rate', shortName: 'Ack', displayName: 'Ack Rate', render: RateRender },
   { group: 'Message Rate', field: 'message_stats.deliver_details.rate', shortName: 'Deliver', displayName: 'Deliver Rate', render: RateRender },
   { group: 'Message Rate', field: 'message_stats.deliver_get_details.rate', shortName: 'Deliver Get', displayName: 'Deliver Get Rate', render: RateRender },
