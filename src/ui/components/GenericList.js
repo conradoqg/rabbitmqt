@@ -68,6 +68,13 @@ export default function GenericList({
   //   : [];
 
   async function fetchList() {
+    // If the selected vhost no longer exists on the server, reset to "all" and retry
+    if (vhosts.value.length > 0 && selectedVhost.value !== 'all' && !vhosts.value.includes(selectedVhost.value)) {
+      selectedVhost.value = 'all';
+      page.value = 1;
+      updateURL();
+      return fetchList();
+    }
     if (!url.value || !username.value) {
       error.value = 'URL and username are required';
       return;
@@ -89,6 +96,32 @@ export default function GenericList({
       params += `&use_regex=${searchUseRegex.value}`;
       const res = await fetchProxy(basePath + params);
       const json = await res.json();
+      // Handle server-side page_out_of_range error: bounce to the last valid page
+      if (json.error === 'page_out_of_range') {
+        const reason = json.reason || '';
+        const lenMatch = reason.match(/len:\s*(\d+)/i);
+        const sizeMatch = reason.match(/page size:\s*(\d+)/i);
+        const totalCount = lenMatch ? parseInt(lenMatch[1], 10) : 0;
+        const pageSize = sizeMatch ? parseInt(sizeMatch[1], 10) : itemsPerPage.value;
+        const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
+        if (page.value !== lastPage) {
+          page.value = lastPage;
+          updateURL();
+          return fetchList();
+        }
+        if (page.value !== 1) {
+          page.value = 1;
+          updateURL();
+          return fetchList();
+        }
+      }
+      // Client-side bounce: if page_count provided and requested page exceeds it, go to last page
+      if (json.page_count > 0 && page.value > json.page_count) {
+        page.value = json.page_count;
+        updateURL();
+        return fetchList();
+      }
+      // Normal response
       data.value = {
         items: json.items || [],
         totalPages: json.page_count,

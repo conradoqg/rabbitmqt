@@ -30,7 +30,30 @@ export async function fetchProxy(path) {
     headers['Authorization'] = 'Basic ' + btoa(username.value + ':' + password.value);
   }
   const res = await fetch(proxyUrl, { method: 'GET', headers });
-  if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+  if (!res.ok) {
+    // If server indicates page out of range, return response for caller to handle bounce logic
+    if (res.status === 400) {
+      let errJson = null;
+      try {
+        // Clone response to avoid consuming the original body
+        errJson = await res.clone().json();
+      } catch (_) {
+        /* ignore parse errors */
+      }
+      if (errJson && errJson.error === 'page_out_of_range') {
+        return res;
+      }
+    }
+    // For other errors, attempt to extract message and throw
+    let errMsg;
+    try {
+      const errObj = await res.clone().json();
+      errMsg = errObj.reason || errObj.error || `${res.status} ${res.statusText}`;
+    } catch (_) {
+      errMsg = `${res.status} ${res.statusText}`;
+    }
+    throw new Error(errMsg);
+  }
   return res;
 }
 
