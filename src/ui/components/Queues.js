@@ -5,6 +5,7 @@ import GroupMessagesComponent from './cell/GroupMessagesComponent.js';
 import GroupBytesComponent from './cell/GroupBytesComponent.js';
 import RecordComponent from './cell/RecordComponent.js';
 import ArrayComponent from './cell/ArrayComponent.js';
+import NameCell from './cell/NameCell.js';
 import TimestampRender from './cell/TimestampRender.js';
 import RateRender from './cell/RateRender.js';
 import ByteRender from './cell/ByteRender.js';
@@ -15,7 +16,7 @@ import StateComponent from './cell/StateComponent.js';
 // Column definitions for Queues tab
 const columns = [
   { group: 'General', field: 'vhost', shortName: 'Vhost' },
-  { group: 'General', field: 'name', shortName: 'Name' },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
   { group: 'General', field: 'state', shortName: 'State', align: 'center', component: StateComponent },
   { group: 'General', field: 'node', shortName: 'Node', visible: false },
   { group: 'General', field: 'type', shortName: 'Type' },
