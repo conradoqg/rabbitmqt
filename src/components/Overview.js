@@ -1,5 +1,7 @@
 import { html } from 'htm/preact';
 import { overview, fetchData } from '../store.js';
+import IntegerRender from './cell/IntegerRender.js';
+import RateRender from './cell/RateRender.js';
 
 export default function Overview() {
   const { loading, error } = overview;
@@ -40,7 +42,7 @@ export default function Overview() {
         <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
           ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
             <div class="stat">
-              <div class="stat-value">${val}</div>
+              <div class="stat-value">${IntegerRender(val)}</div>
               <div class="stat-desc">${key.charAt(0).toUpperCase() + key.slice(1)}</div>
             </div>
           `)}
@@ -48,7 +50,7 @@ export default function Overview() {
         <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
           ${Object.entries(data.queue_totals || {}).filter(([k]) => !k.endsWith('_details')).map(([key, val]) => html`
             <div class="stat">
-              <div class="stat-value">${val}</div>
+              <div class="stat-value">${IntegerRender(val)}</div>
               <div class="stat-desc">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
             </div>
           `)}
@@ -56,7 +58,7 @@ export default function Overview() {
         <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
           ${['publish_details', 'deliver_details', 'ack_details'].map(metric => {
     const m = data.message_stats && data.message_stats[metric];
-    const rate = m && m.rate != null ? m.rate.toFixed(2) : '0';
+    const rate = m && RateRender(m.rate);
     const name = metric.replace(/_details$/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     return html`
             <div class="stat">

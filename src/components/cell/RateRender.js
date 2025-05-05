@@ -1,5 +1,5 @@
-import { html } from 'htm/preact';
+import createNumeralRender from "./createNumeralRender.js"
 
 export default function RateRender(value) {
-  return `${value != null ? value.toFixed(2) : (0.0).toFixed(2)}/s`
+    return createNumeralRender('0.0a', '', '/s')(value)
 }

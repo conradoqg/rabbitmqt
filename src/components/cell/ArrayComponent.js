@@ -10,5 +10,11 @@ export default function ArrayComponent({ value }) {
         </span>
       `
     :
-    ''
+    html`<span
+          class="cursor-help"
+          title=""
+        >
+          0 <i class="mdi mdi-information"></i>
+        </span>
+      `
 }

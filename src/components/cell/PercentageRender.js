@@ -1,6 +1,5 @@
-import numberal from 'numeral';
+import createNumeralRender from './createNumeralRender.js';
 
 export default function PercentageRender(value) {
-    let finalValue = value != null ? value : 0;
-    return `${numberal(finalValue).format('0%')}`;
+    return createNumeralRender('0%')(value);
 }

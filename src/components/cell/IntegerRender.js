@@ -1,6 +1,5 @@
-import numberal from 'numeral';
+import createNumeralRender from "./createNumeralRender.js";
 
 export default function IntegerRender(value) {
-    let finalValue = value != null ? value : 0;
-    return `${numberal(finalValue).format('0a')}`;
+    return createNumeralRender('0a')(value)
 }
