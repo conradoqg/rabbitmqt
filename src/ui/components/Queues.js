@@ -16,7 +16,7 @@ import StateComponent from './cell/StateComponent.js';
 // Column definitions for Queues tab
 const columns = [
   { group: 'General', field: 'vhost', shortName: 'Vhost' },
-  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
   { group: 'General', field: 'state', shortName: 'State', align: 'center', component: StateComponent },
   { group: 'General', field: 'node', shortName: 'Node', visible: false },
   { group: 'General', field: 'type', shortName: 'Type' },

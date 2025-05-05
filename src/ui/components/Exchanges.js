@@ -7,7 +7,7 @@ import NameCell from './cell/NameCell.js';
 // Column definitions for Exchanges tab
 const columns = [
   { field: 'vhost', shortName: 'Vhost', group: '' },
-  { field: 'name', shortName: 'Name', group: '', component: NameCell },
+  { field: 'name', shortName: 'Name', group: '', component: NameCell, width: 'max-w-[300px]' },
   { field: 'message_stats.publish_in_details.rate', shortName: 'Publish In', group: 'Stats', render: RateRender },
   { field: 'message_stats.publish_ou_details.rate', shortName: 'Publish Out', group: 'Stats', render: RateRender },
   { field: 'policy', shortName: 'Policy', group: 'Settings' },

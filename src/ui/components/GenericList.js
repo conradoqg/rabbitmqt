@@ -404,7 +404,10 @@ export default function GenericList({
                       <tr>
                         ${visibleColumns.value.map(key => {
           const colMeta = columnsMap[key] || {};
-          const alignClass = colMeta.align ? `text-${colMeta.align}` : '';
+          // Align and width classes; use width class from column metadata if provided
+          const baseClass = colMeta.align ? `text-${colMeta.align}` : '';
+          const widthClass = colMeta.width ? ` ${colMeta.width}` : '';
+          const alignClass = `${baseClass}${widthClass}`;
           return html`
                             <th class=${`sticky top-7 bg-base-100 z-10 ${alignClass}`}>
                               ${headerNamesMap[key] || key}
@@ -424,7 +427,10 @@ export default function GenericList({
                           ${visibleColumns.value.map(key => {
           const colMeta = columnsMap[key] || {};
           const val = getValueByPath(item, key);
-          const alignClass = colMeta.align ? `text-${colMeta.align}` : '';
+          // Align and width classes; use width class from column metadata if provided
+          const baseClass = colMeta.align ? `text-${colMeta.align}` : '';
+          const widthClass = colMeta.width ? ` ${colMeta.width}` : '';
+          const alignClass = `${baseClass}${widthClass}`;
           if (colMeta.component) {
             return html`<td class=${alignClass}><${colMeta.component} value=${val} item=${item} /></td>`;
           }
