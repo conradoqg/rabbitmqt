@@ -39,7 +39,8 @@ export default function Overview() {
             <p>${data.rates_mode}</p>
           </div>
         </div>
-        <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
+        <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4 mb-4">
+        <div class="stats stats-vertical lg:stats-horizontal shadow">
           ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
             <div class="stat">
               <div class="stat-value">${IntegerRender(val)}</div>
@@ -47,7 +48,7 @@ export default function Overview() {
             </div>
           `)}
         </div>
-        <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
+        <div class="stats stats-vertical lg:stats-horizontal shadow">
           ${Object.entries(data.queue_totals || {}).filter(([k]) => !k.endsWith('_details')).map(([key, val]) => html`
             <div class="stat">
               <div class="stat-value">${IntegerRender(val)}</div>
@@ -55,7 +56,7 @@ export default function Overview() {
             </div>
           `)}
         </div>
-        <div class="stats stats-vertical lg:stats-horizontal shadow mb-4">
+        <div class="stats stats-vertical lg:stats-horizontal shadow">
           ${['publish_details', 'deliver_details', 'ack_details'].map(metric => {
     const m = data.message_stats && data.message_stats[metric];
     const rate = m && RateRender(m.rate);
@@ -66,6 +67,7 @@ export default function Overview() {
               <div class="stat-desc">${name}/s</div>
             </div>
           `})}
+        </div>
         </div>
         <!-- General Info -->
         <h2 class="text-xl font-semibold mt-6 mb-2">General Info</h2>
@@ -173,6 +175,7 @@ export default function Overview() {
             `)}
           </tbody>
         </table>
+        </div>
         `}
       `}
       ${!loading.value && !error.value && !data && html`<p>No overview data. Click Connect.</p>`}
