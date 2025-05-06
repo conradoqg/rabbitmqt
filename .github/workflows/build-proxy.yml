@@ -1,4 +1,4 @@
-name: Build Proxy Server
+name: Build rabbitmqt
 
 on:
   push:
@@ -17,11 +17,11 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Build proxy-server
-        run: make build-proxy
+      - name: Build rabbitmqt
+        run: make build-rabbitmqt
 
-      - name: Upload proxy binary
+      - name: Upload rabbitmqt binary
         uses: actions/upload-artifact@v3
         with:
-          name: proxy-server
-          path: output/proxy-server
+          name: rabbitmqt
+          path: output/rabbitmqt

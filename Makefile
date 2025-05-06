@@ -14,7 +14,7 @@ CONSUMER_CONFIRM ?= false   # enable consumer confirms/manualacks (false|true)
 MEMORY ?= 2048m  # container memory limit (e.g. 512m, 1g)
 CPUS   ?= 0.5    # container CPU quota in cores (e.g. 1, 2)
 
-.PHONY: start-rabbitmq wait-rabbitmq test-rabbitmq stop-rabbitmq clean build-proxy
+.PHONY: start-rabbitmq wait-rabbitmq test-rabbitmq stop-rabbitmq clean build-rabbitmqt
 .PHONY: test-rabbitmq-tmux
 
 start-rabbitmq:
@@ -28,7 +28,7 @@ start-rabbitmq:
 
 test-rabbitmq:
 	@echo "Running benchmark (will stop RabbitMQ when done)..."
-		cd rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ \
+		cd tools/rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ \
 			-rate $(RATE) \
 			$(if $(DURATION),-duration $(DURATION)) \
 			-producers $(PRODUCERS) -consumers $(CONSUMERS) \
@@ -59,7 +59,7 @@ test-rabbitmq-tmux:
 	@tmux split-window -v -t rabbitmq-bench:0 -p 33 'sleep 2 && docker stats rabbitmq-limited'
 	# Pane 2: run the bench command only (locally) (bottom-right)
 	@tmux split-window -h -t rabbitmq-bench:0.1 -p 50 \
-		'cd rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ \
+			'cd tools/rabbitmq-bench && go run main.go -url amqp://guest:guest@localhost:5672/ \
 			-rate $(RATE) \
 			$(if $(DURATION),-duration $(DURATION)) \
 			-producers $(PRODUCERS) -consumers $(CONSUMERS) \
@@ -72,7 +72,7 @@ test-rabbitmq-tmux:
 	@docker stop rabbitmq-limited || true
 
 clean: stop-rabbitmq
-build-proxy:
-	@echo "Building proxy-server..."
+build-rabbitmqt:
+	@echo "Building rabbitmqt..."
 	@mkdir -p output
-	@cd src && go build -o ../output/proxy-server .
+	@cd cmd/rabbitmqt && go build -o ../../output/rabbitmqt .

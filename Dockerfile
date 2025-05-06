@@ -6,13 +6,13 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
-# Copy go.mod and go.sum, download dependencies
-COPY src/go.mod src/go.sum ./
+# Copy go.mod, download dependencies
+COPY cmd/rabbitmqt/go.mod ./
 RUN go mod download
 
 # Copy source code (including ui/ directory) and build
-COPY src/ .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o proxy-server .
+COPY cmd/rabbitmqt/ ./
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o rabbitmqt .
 
 # Use a minimal Alpine image for runtime
 FROM alpine:3.18 AS runtime
@@ -23,10 +23,10 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 
 # Copy the compiled binary
-COPY --from=builder /app/proxy-server ./proxy-server
+COPY --from=builder /app/rabbitmqt ./rabbitmqt
 
 # Expose default HTTP port
 EXPOSE 8080
 
 # Run the proxy server
-ENTRYPOINT ["./proxy-server"]
+ENTRYPOINT ["./rabbitmqt"]
