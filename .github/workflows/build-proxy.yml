@@ -1,0 +1,27 @@
+name: Build Proxy Server
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build proxy-server
+        run: make build-proxy
+
+      - name: Upload proxy binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: proxy-server
+          path: output/proxy-server
