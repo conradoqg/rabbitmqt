@@ -1,8 +1,7 @@
 import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
-import RecordComponent from './cell/RecordComponent.js';
-import RateRender from './cell/RateRender.js';
-import NameCell from './cell/NameCell.js';
+import { RecordComponent, NameCell } from './Cells.js';
+import { RateRender } from './Renders.js';
 
 // Column definitions for Exchanges tab
 const columns = [

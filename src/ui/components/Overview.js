@@ -1,7 +1,6 @@
 import { html } from 'htm/preact';
 import { overview, fetchData } from '../store.js';
-import RateRender from './cell/RateRender.js';
-import NumberRender from './cell/NumberRender.js';
+import { RateRender, NumberRender } from './Renders.js';
 
 export default function Overview() {
   const { loading, error } = overview;

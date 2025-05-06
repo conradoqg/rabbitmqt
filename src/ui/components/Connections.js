@@ -1,12 +1,7 @@
 import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
-import NameCell from './cell/NameCell.js';
-import TimestampRender from './cell/TimestampRender.js';
-import NumberRender from './cell/NumberRender.js';
-import ByteRender from './cell/ByteRender.js';
-import RateRender from './cell/RateRender.js';
-import StateComponent from './cell/StateComponent.js';
-import RecordComponent from './cell/RecordComponent.js';
+import { NameCell, StateComponent, RecordComponent } from './Cells.js';
+import { TimestampRender, NumberRender, ByteRender, RateRender } from './Renders.js';
 
 const columns = [
   { field: 'vhost', shortName: 'Vhost', group: 'General', component: NameCell, width: 'max-w-[150px]' },

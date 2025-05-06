@@ -1,18 +1,7 @@
 import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
-import GroupMessageRateComponent from './cell/GroupMessageRateComponent.js';
-import GroupMessagesComponent from './cell/GroupMessagesComponent.js';
-import GroupBytesComponent from './cell/GroupBytesComponent.js';
-import RecordComponent from './cell/RecordComponent.js';
-import ArrayComponent from './cell/ArrayComponent.js';
-import NameCell from './cell/NameCell.js';
-import ConfirmQueueComponent from './cell/ConfirmQueueComponent.js';
-import TimestampRender from './cell/TimestampRender.js';
-import RateRender from './cell/RateRender.js';
-import ByteRender from './cell/ByteRender.js';
-import NumberRender from './cell/NumberRender.js';
-import PercentageRender from './cell/PercentageRender.js';
-import StateComponent from './cell/StateComponent.js';
+import { GroupMessageRateComponent, GroupMessagesComponent, GroupBytesComponent, RecordComponent, ArrayComponent, NameCell, ConfirmQueueComponent, StateComponent } from './Cells.js';
+import { TimestampRender, RateRender, ByteRender, NumberRender, PercentageRender } from './Renders.js';
 
 // Column definitions for Queues tab
 const columns = [
