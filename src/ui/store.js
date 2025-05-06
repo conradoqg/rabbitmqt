@@ -76,6 +76,8 @@ export async function fetchData() {
     vhosts.value = vhsData.map(v => v.name);
   } catch (e) {
     overview.error.value = e.message;
+    // Show error via toast
+    addToast(e.message, 'error');
   } finally {
     overview.loading.value = false;
   }
@@ -113,4 +115,21 @@ if (typeof window !== 'undefined') {
       activeTab.value = t;
     }
   });
+}
+
+// Toast notifications
+export const toasts = signal([]);
+
+/**
+ * Show a toast notification.
+ * @param {string} message - The message to display.
+ * @param {'info'|'success'|'error'} [type='info'] - The type of toast.
+ * @param {number} [duration=5000] - Duration in ms before auto-dismiss.
+ */
+export function addToast(message, type = 'info', duration = 5000) {
+  const id = Date.now() + Math.random();
+  toasts.value = [...toasts.value, { id, message, type }];
+  setTimeout(() => {
+    toasts.value = toasts.value.filter(t => t.id !== id);
+  }, duration);
 }

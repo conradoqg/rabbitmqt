@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
 import { activeTab } from './store.js';
 import NavBar from './components/NavBar.js';
+import Toasts from './components/Toasts.js';
 import Tabs from './components/Tabs.js';
 import Overview from './components/Overview.js';
 import Exchanges from './components/Exchanges.js';
@@ -11,6 +12,7 @@ import Channels from './components/Channels.js';
 export default function App() {
   return html`
     <div class="h-screen flex flex-col">
+      <${Toasts}/>
       <${NavBar}/>
 
       <section class="py-6">

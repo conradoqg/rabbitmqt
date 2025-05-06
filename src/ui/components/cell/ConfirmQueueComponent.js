@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useRef } from 'preact/hooks';
-import { url, username, password } from '../../store.js';
+import { url, username, password, addToast } from '../../store.js';
 
 export default function ConfirmQueueComponent({ value, item }) {
   const inputVal = useSignal('');
@@ -31,9 +31,11 @@ export default function ConfirmQueueComponent({ value, item }) {
           const text = await res.text();
           throw new Error(text || `${res.status} ${res.statusText}`);
         }
-        console.log('Purged queue:', item.name);
+        // Notify success
+        addToast(`Purged queue: ${item.name}`, 'success');
       } catch (e) {
         console.error('Error purging queue:', e);
+        addToast(`Error purging queue: ${e.message}`, 'error');
       } finally {
         isLoading.value = false;
         inputVal.value = '';

@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab } from '../store.js';
+import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab, addToast } from '../store.js';
 import Pagination from './Pagination.js';
 
 export default function GenericList({
@@ -76,7 +76,8 @@ export default function GenericList({
       return fetchList();
     }
     if (!url.value || !username.value) {
-      error.value = 'URL and username are required';
+      // Notify missing credentials error via toast
+      addToast('URL and username are required', 'error');
       return;
     }
     loading.value = true;
@@ -129,6 +130,8 @@ export default function GenericList({
       };
     } catch (e) {
       error.value = e.message;
+      // Show error via toast
+      addToast(e.message, 'error');
     } finally {
       loading.value = false;
     }
@@ -351,7 +354,6 @@ export default function GenericList({
           disabled=${loading.value}
         >${loading.value ? html`<span class="loading loading-spinner"></span>` : 'Refresh'}</button>
       </div>      
-      ${error.value && html`<div class="alert alert-error mb-4"><div>${error.value}</div></div>`}
       ${data.value && data.value.items && data.value.items.length > 0 && html`
         <div class="card bg-base-100 shadow mb-4">
           <div class="card-body p-0">
