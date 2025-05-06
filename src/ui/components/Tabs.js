@@ -2,7 +2,7 @@ import { html } from 'htm/preact';
 import { activeTab, changeTab } from '../store.js';
 
 export default function Tabs() {
-  const tabs = ['overview', 'exchanges', 'queues'];
+  const tabs = ['overview', 'connections', 'channels', 'exchanges', 'queues'];
   return html`
     <div class="tabs tabs-boxed mb-4">
       ${tabs.map(tab => html`

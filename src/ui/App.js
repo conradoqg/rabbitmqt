@@ -5,6 +5,8 @@ import Tabs from './components/Tabs.js';
 import Overview from './components/Overview.js';
 import Exchanges from './components/Exchanges.js';
 import Queues from './components/Queues.js';
+import Connections from './components/Connections.js';
+import Channels from './components/Channels.js';
 
 export default function App() {
   return html`
@@ -17,6 +19,8 @@ export default function App() {
 
           <div class="m-4">
             <div hidden=${activeTab.value !== 'overview'}><${Overview}/></div>
+            <div hidden=${activeTab.value !== 'connections'}><${Connections}/></div>
+            <div hidden=${activeTab.value !== 'channels'}><${Channels}/></div>
             <div hidden=${activeTab.value !== 'exchanges'}><${Exchanges}/></div>
             <div hidden=${activeTab.value !== 'queues'}><${Queues}/></div>
           </div>

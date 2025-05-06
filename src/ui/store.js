@@ -100,7 +100,7 @@ export function changeTab(tab) {
 
 // Initialize activeTab from URL search params and handle back/forward
 if (typeof window !== 'undefined') {
-  const allowedTabs = ['overview', 'exchanges', 'queues'];
+  const allowedTabs = ['overview', 'exchanges', 'queues', 'connections', 'channels'];
   const sp = new URLSearchParams(window.location.search);
   const tabParam = sp.get('tab');
   if (allowedTabs.includes(tabParam)) {
