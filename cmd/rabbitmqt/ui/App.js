@@ -5,11 +5,11 @@ import { Overview, Exchanges, Queues, Connections, Channels } from './components
 
 export default function App() {
   return html`
-    <div class="h-screen flex flex-col">
+  <div class="flex flex-col min-h-screen">
       <${Toasts}/>
       <${NavBar}/>
 
-      <section class="py-6 flex-grow overflow-auto">
+      <section class="py-6 flex-grow">
         <div class="w-full px-4">
           <${Tabs}/>
 
