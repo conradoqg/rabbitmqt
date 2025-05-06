@@ -1,13 +1,8 @@
 import { html } from 'htm/preact';
 import { activeTab } from './store.js';
-import NavBar from './components/NavBar.js';
-import Toasts from './components/Toasts.js';
-import Tabs from './components/Tabs.js';
+import { NavBar, Tabs, Toasts } from './components/Layout.js';
 import Overview from './components/Overview.js';
-import Exchanges from './components/Exchanges.js';
-import Queues from './components/Queues.js';
-import Connections from './components/Connections.js';
-import Channels from './components/Channels.js';
+import { Exchanges, Queues, Connections, Channels } from './components/Pages.js';
 
 export default function App() {
   return html`

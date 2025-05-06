@@ -1,10 +1,123 @@
 import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
-import { GroupMessageRateComponent, GroupMessagesComponent, GroupBytesComponent, RecordComponent, ArrayComponent, NameCell, ConfirmQueueComponent, StateComponent } from './Cells.js';
-import { TimestampRender, RateRender, ByteRender, NumberRender, PercentageRender } from './Renders.js';
+import {
+  NameCell,
+  StateComponent,
+  RecordComponent,
+  GroupMessageRateComponent,
+  GroupMessagesComponent,
+  GroupBytesComponent,
+  ArrayComponent,
+  ConfirmQueueComponent
+} from './Cells.js';
+import {
+  TimestampRender,
+  NumberRender,
+  ByteRender,
+  RateRender,
+  PercentageRender
+} from './Renders.js';
 
-// Column definitions for Queues tab
-const columns = [
+// Channels list page
+const channelsColumns = [
+  { field: 'vhost', shortName: 'Vhost', group: 'General', component: NameCell, width: 'max-w-[150px]' },
+  { field: 'name', shortName: 'Name', group: 'General', component: NameCell, width: 'max-w-[300px]' },
+  { field: 'connection_details.name', shortName: 'Connection', displayName: 'Connection Name', group: 'General', component: NameCell },
+  { field: 'connection_details.peer_host', shortName: 'Peer Host', group: 'General' },
+  { field: 'number', shortName: '#', group: 'General', render: NumberRender },
+  { field: 'consumer_count', shortName: 'Consumers', group: 'General', render: NumberRender },
+  { field: 'state', shortName: 'State', group: 'General', component: StateComponent, align: 'center' },
+  { field: 'idle_since', shortName: 'Idle Since', group: 'Stats', render: TimestampRender },
+  { field: 'message_stats', shortName: 'Msg Stats', displayName: 'Message Stats', group: 'Stats', sortable: false, component: GroupMessageRateComponent },
+  { field: 'pending_raft_commands', shortName: 'RAFT', group: 'Stats', render: NumberRender },
+  { field: 'reductions', shortName: 'Reductions', group: 'Stats', render: NumberRender },
+  { field: 'reductions_details.rate', shortName: 'Reductions Rate', group: 'Stats', render: RateRender },
+  { field: 'prefetch_count', shortName: 'Prefetch', group: 'Settings', render: NumberRender },
+  { field: 'confirm', shortName: 'Confirm', group: 'Settings', align: 'center' },
+  { field: 'transactional', shortName: 'Transactional', group: 'Settings', align: 'center' },
+  { field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', group: 'Settings', component: RecordComponent },
+  { field: 'user', shortName: 'User', group: 'Audit', component: NameCell },
+  { field: 'user_who_performed_action', shortName: 'User Action', group: 'Audit', component: NameCell },
+];
+
+export function Channels() {
+  return html`
+    <${GenericList}
+      title="Channels"
+      route="channels"
+      defaultSortDir="desc"
+      defaultSortField="message_stats.deliver_details.rate"
+      columns=${channelsColumns}
+    />`;
+}
+
+// Connections list page
+const connectionsColumns = [
+  { field: 'vhost', shortName: 'Vhost', group: 'General', component: NameCell, width: 'max-w-[150px]' },
+  { field: 'name', shortName: 'Name', group: 'General', component: NameCell, width: 'max-w-[300px]' },
+  { field: 'user', shortName: 'User', group: 'General', component: NameCell, width: 'max-w-[150px]' },
+  { field: 'type', shortName: 'Type', group: 'General' },
+  { field: 'protocol', shortName: 'Protocol', group: 'General' },
+  { field: 'node', shortName: 'Node', group: 'General', visible: false },
+  { field: 'connected_at', shortName: 'Connected', group: 'General', render: TimestampRender },
+  { field: 'channels', shortName: 'Channels', group: 'Channels', render: NumberRender },
+  { field: 'channel_max', shortName: 'Max Chan', group: 'Channels', render: NumberRender },
+  { field: 'recv_cnt', shortName: 'Recv Count', group: 'Traffic', render: NumberRender },
+  { field: 'recv_oct', shortName: 'Recv Bytes', group: 'Traffic', render: ByteRender },
+  { field: 'recv_oct_details.rate', shortName: 'Recv Rate', group: 'Traffic', render: RateRender },
+  { field: 'send_cnt', shortName: 'Send Count', group: 'Traffic', render: NumberRender },
+  { field: 'send_oct', shortName: 'Send Bytes', group: 'Traffic', render: ByteRender },
+  { field: 'send_oct_details.rate', shortName: 'Send Rate', group: 'Traffic', render: RateRender },
+  { field: 'reductions', shortName: 'Reductions', group: 'Traffic', render: NumberRender },
+  { field: 'reductions_details.rate', shortName: 'Reductions Rate', group: 'Traffic', render: RateRender },
+  { field: 'state', shortName: 'State', group: 'General', component: StateComponent, align: 'center' },
+  { field: 'ssl', shortName: 'SSL', group: 'Security', align: 'center' },
+  { field: 'auth_mechanism', shortName: 'Auth Mech', group: 'Security' },
+  { field: 'timeout', shortName: 'Timeout', group: 'Settings', render: NumberRender },
+  { field: 'user_who_performed_action', shortName: 'User Action', group: 'Audit', component: NameCell, width: 'max-w-[150px]' },
+  { field: 'client_properties', shortName: 'Props', displayName: 'Client Properties', group: 'Settings', component: RecordComponent },
+  { field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', group: 'Settings', component: RecordComponent },
+];
+
+export function Connections() {
+  return html`
+    <${GenericList}
+      title="Connections"
+      route="connections"
+      defaultSortDir="desc"
+      defaultSortField="connected_at"
+      columns=${connectionsColumns}
+    />`;
+}
+
+// Exchanges list page
+const exchangesColumns = [
+  { field: 'vhost', shortName: 'Vhost', group: '', component: NameCell, width: 'max-w-[150px]' },
+  { field: 'name', shortName: 'Name', group: '', component: NameCell, width: 'max-w-[300px]' },
+  { field: 'message_stats.publish_in_details.rate', shortName: 'Publish In', group: 'Stats', render: RateRender },
+  { field: 'message_stats.publish_ou_details.rate', shortName: 'Publish Out', group: 'Stats', render: RateRender },
+  { field: 'policy', shortName: 'Policy', group: 'Settings' },
+  { field: 'auto_delete', shortName: 'AD', group: 'Settings', displayName: 'Auto Delete' },
+  { field: 'durable', shortName: 'D', group: 'Settings', displayName: 'Durable' },
+  { field: 'internal', shortName: 'I', group: 'Settings', displayName: 'Internal' },
+  { field: 'type', shortName: 'Type', group: 'Settings' },
+  { field: 'arguments', shortName: 'A', group: 'Settings', displayName: 'Arguments', component: RecordComponent },
+  { field: 'user_who_performed_action', shortName: 'User', group: 'Audit', component: NameCell, width: 'max-w-[150px]' },
+];
+
+export function Exchanges() {
+  return html`
+    <${GenericList}
+      title="Exchanges"
+      route="exchanges"
+      defaultSortDir="desc"
+      defaultSortField="message_stats.publish_in_details.rate"
+      columns=${exchangesColumns}
+    />`;
+}
+
+// Queues list page
+const queuesColumns = [
   { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
   { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
   { group: 'General', field: 'state', shortName: 'State', align: 'center', component: StateComponent },
@@ -60,13 +173,13 @@ const columns = [
   { group: 'Actions', field: 'purge', shortName: 'Purge', component: ConfirmQueueComponent },
 ];
 
-export default function Queues() {
+export function Queues() {
   return html`
     <${GenericList}
       title="Queues"
       route="queues"
       defaultSortDir="desc"
       defaultSortField="message_stats.deliver_details.rate"
-      columns=${columns}
+      columns=${queuesColumns}
     />`;
 }
