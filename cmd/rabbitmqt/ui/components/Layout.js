@@ -1,12 +1,15 @@
 import { html } from 'htm/preact';
-import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts } from '../store.js';
+import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION } from '../store.js';
 
 // Navigation bar component with connection inputs and controls
 export function NavBar() {
   return html`
     <nav class="navbar bg-base-100 shadow px-4">
       <div class="flex-1">
-        <a class="btn btn-ghost normal-case text-xl">RabbitMQ Management</a>
+        <a class="btn btn-ghost normal-case text-xl">
+          RabbitMQ Management
+          <span class="text-xs opacity-50 ml-2">v${VERSION}</span>
+        </a>
       </div>
       <div class="flex-none flex flex-wrap items-center gap-2">
         <input

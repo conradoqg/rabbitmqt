@@ -15,6 +15,9 @@ import (
 //go:embed ui
 var embeddedUI embed.FS
 
+// Application version
+const Version = "1.0"
+
 // proxyRawHandler handles path-based proxying: forwards any method, headers, body, and query to the target URL.
 func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
@@ -87,6 +90,7 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Printf("rabbitmqt version %s", Version)
 	// serve static files: from local ./ui if available, else from embedded assets
 	var fileSystem http.FileSystem
 	if stat, err := os.Stat("./ui"); err == nil && stat.IsDir() {

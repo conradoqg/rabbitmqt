@@ -8,6 +8,8 @@ import { signal, batch } from '@preact/signals';
 export const url = signal('');
 export const username = signal('');
 export const password = signal('');
+// Application version
+export const VERSION = '1.0';
 
 // Navigation state
 export const activeTab = signal('overview');
