@@ -360,25 +360,30 @@ export default function GenericList({
             ><i class="mdi mdi-arrow-right-bold"></i></button>
           </div>
           <div class="flex items-center join">
-            <input
-              class="input input-bordered flex-grow join-item"
-              type="text"
-              placeholder="Search"
-              value=${searchName.value}
-              disabled=${loading.value}
-              onInput=${e => (searchName.value = e.target.value)}
-              onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); updateURL(); } }}
-            />
+            <div class="relative join-item flex-grow">
+              <input
+                class="input input-bordered w-full pr-8"
+                type="text"
+                placeholder="Search"
+                value=${searchName.value}
+                disabled=${loading.value}
+                onInput=${e => (searchName.value = e.target.value)}
+                onKeyDown=${e => { if (e.key === 'Enter') { page.value = 1; fetchList(); updateURL(); } }}
+              />
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                onClick=${() => { searchName.value = ''; fetchList(); updateURL(); }}
+                disabled=${loading.value}
+              >
+                <i class="mdi mdi-close"></i>
+              </button>
+            </div>
             <button
               class=${`btn ${searchUseRegex.value ? 'btn-accent' : ''} join-item`}
               onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
               disabled=${loading.value}
             ><i class="mdi mdi-regex"></i></button>
-            <button
-              class="btn btn-secondary join-item"
-              onClick=${() => { searchName.value = ''; fetchList(); updateURL(); }}
-              disabled=${loading.value}
-            ><i class="mdi mdi-cancel"></i></button>
             <button
               class="btn btn-secondary join-item"
               onClick=${() => { page.value = 1; fetchList(); updateURL(); }}

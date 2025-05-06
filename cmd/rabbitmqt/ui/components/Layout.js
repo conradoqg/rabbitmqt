@@ -12,39 +12,69 @@ export function NavBar() {
         </a>
       </div>
       <div class="flex-none flex flex-wrap items-center gap-2">
-        <input
-          class="input input-bordered w-48"
-          type="text"
-          placeholder="URL"
-          value=${url.value}
-          onInput=${e => (url.value = e.target.value)}
-          disabled=${overview.loading.value}
-        />
-        <input
-          class="input input-bordered w-32"
-          type="text"
-          placeholder="Username"
-          value=${username.value}
-          onInput=${e => (username.value = e.target.value)}
-          disabled=${overview.loading.value}
-        />
-        <input
-          class="input input-bordered w-32"
-          type="password"
-          placeholder="Password"
-          value=${password.value}
-          onInput=${e => (password.value = e.target.value)}
-          disabled=${overview.loading.value}
-        />
-        <label class="flex items-center ml-2">
+        <div class="relative">
           <input
-            type="checkbox"
-            checked=${fastMode.value}
-            onChange=${e => (fastMode.value = e.target.checked)}
+            class="input input-bordered w-48 pr-8"
+            type="text"
+            placeholder="URL"
+            value=${url.value}
+            onInput=${e => (url.value = e.target.value)}
             disabled=${overview.loading.value}
           />
-          <span class="ml-1">Fast Mode</span>
-        </label>
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+            onClick=${() => (url.value = '')}
+            disabled=${overview.loading.value}
+          >
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+        <div class="relative">
+          <input
+            class="input input-bordered w-32 pr-8"
+            type="text"
+            placeholder="Username"
+            value=${username.value}
+            onInput=${e => (username.value = e.target.value)}
+            disabled=${overview.loading.value}
+          />
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+            onClick=${() => (username.value = '')}
+            disabled=${overview.loading.value}
+          >
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+        <div class="relative">
+          <input
+            class="input input-bordered w-32 pr-8"
+            type="password"
+            placeholder="Password"
+            value=${password.value}
+            onInput=${e => (password.value = e.target.value)}
+            disabled=${overview.loading.value}
+          />
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+            onClick=${() => (password.value = '')}
+            disabled=${overview.loading.value}
+          >
+            <i class="mdi mdi-close"></i>
+          </button>
+        </div>
+        <button
+          class=${`btn ml-2 ${fastMode.value ? 'btn-accent' : ''}`}
+          type="button"
+          title="Fast Mode (Disable Stats"
+          onClick=${() => (fastMode.value = !fastMode.value)}
+          disabled=${overview.loading.value}
+        >
+          <i class="mdi mdi-flash"></i>
+        </button>
         <button
           class=${`btn btn-primary ml-2`}
           disabled=${overview.loading.value}
