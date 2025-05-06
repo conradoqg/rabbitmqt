@@ -1,12 +1,21 @@
 import { signal, batch } from '@preact/signals';
 
-// Connection and navigation state
+/**
+ * UI Store: state signals and actions for RabbitMQ Management UI
+ */
+
+// Authentication state
 export const url = signal('');
 export const username = signal('');
 export const password = signal('');
+
+// Navigation state
 export const activeTab = signal('overview');
-// Fast mode for GET API calls: when enabled, add RabbitMQ query params to optimize performance
+
+// UI settings
 export const fastMode = signal(false);
+// Allowed tabs for deep linking and navigation
+const ALLOWED_TABS = ['overview', 'exchanges', 'queues', 'connections', 'channels'];
 
 // Overview state
 export const overview = {
@@ -15,14 +24,20 @@ export const overview = {
   error: signal(null),
 };
 
-// VHosts list state
+// Virtual hosts list state
 export const vhosts = signal([]);
 
 
-// Common page size
+/**
+ * Default number of items per page in list views.
+ */
 export const PAGE_SIZE = 10;
 
-// Internal helper for proxying requests with basic auth
+/**
+ * Proxy API requests with Basic Auth and optional fast mode parameters.
+ * @param {string} path - API endpoint path (e.g., '/api/overview').
+ * @returns {Promise<Response>}
+ */
 export async function fetchProxy(path) {
   const base = url.value.replace(/\/$/, '');
   // Build full path
@@ -65,7 +80,10 @@ export async function fetchProxy(path) {
   return res;
 }
 
-// Fetch overview and initialize vhosts, reset other data
+/**
+ * Fetch overview data and list of virtual hosts.
+ * Resets previous overview data and updates vhosts list.
+ */
 export async function fetchData() {
   if (!url.value || !username.value) {
     overview.error.value = 'URL and username are required';
@@ -91,7 +109,10 @@ export async function fetchData() {
   }
 }
 
-// Handle tab change: update activeTab and fetch data if needed
+/**
+ * Change the active UI tab and update the URL for deep-linking.
+ * @param {string} tab
+ */
 export function changeTab(tab) {
   // Update browser URL search params for deep-linking
   if (typeof window !== 'undefined' && window.history && window.history.pushState) {
@@ -108,24 +129,26 @@ export function changeTab(tab) {
 
 // Note: component-specific CRUD functions (exchanges/queues) have been moved to their respective components.
 
-// Initialize activeTab from URL search params and handle back/forward
+/**
+ * Initialize activeTab from URL search params and handle browser navigation.
+ */
 if (typeof window !== 'undefined') {
-  const allowedTabs = ['overview', 'exchanges', 'queues', 'connections', 'channels'];
+  // Use ALLOWED_TABS constant for valid tab identifiers
   const sp = new URLSearchParams(window.location.search);
   const tabParam = sp.get('tab');
-  if (allowedTabs.includes(tabParam)) {
+  if (ALLOWED_TABS.includes(tabParam)) {
     activeTab.value = tabParam;
   }
   window.addEventListener('popstate', () => {
     const sp2 = new URLSearchParams(window.location.search);
     const t = sp2.get('tab');
-    if (allowedTabs.includes(t)) {
+    if (ALLOWED_TABS.includes(t)) {
       activeTab.value = t;
     }
   });
 }
 
-// Toast notifications
+// Toast notifications state
 export const toasts = signal([]);
 
 /**

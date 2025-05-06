@@ -1,8 +1,7 @@
 import { html } from 'htm/preact';
 import { activeTab } from './store.js';
 import { NavBar, Tabs, Toasts } from './components/Layout.js';
-import Overview from './components/Overview.js';
-import { Exchanges, Queues, Connections, Channels } from './components/Pages.js';
+import { Overview, Exchanges, Queues, Connections, Channels } from './components/Pages.js';
 
 export default function App() {
   return html`
