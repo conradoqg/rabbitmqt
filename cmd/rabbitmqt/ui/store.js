@@ -16,6 +16,8 @@ export const activeTab = signal('overview');
 
 // UI settings
 export const fastMode = signal(false);
+// UI theme: 'light' or 'dark'
+export const theme = signal('light');
 // Allowed tabs for deep linking and navigation
 const ALLOWED_TABS = ['overview', 'exchanges', 'queues', 'connections', 'channels'];
 
@@ -165,4 +167,29 @@ export function addToast(message, type = 'info', duration = 5000) {
   setTimeout(() => {
     toasts.value = toasts.value.filter(t => t.id !== id);
   }, duration);
+}
+
+/**
+ * Toggle between light and dark themes.
+ */
+export function toggleTheme() {
+  theme.value = theme.value === 'light' ? 'dark' : 'light';
+  if (typeof window !== 'undefined') {
+    const t = theme.value;
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('rabbitmqtTheme', t); } catch {};
+  }
+}
+
+// Initialize theme from localStorage or system preference
+if (typeof window !== 'undefined') {
+  try {
+    const saved = localStorage.getItem('rabbitmqtTheme');
+    if (saved === 'light' || saved === 'dark') {
+      theme.value = saved;
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      theme.value = 'dark';
+    }
+  } catch {}
+  document.documentElement.setAttribute('data-theme', theme.value);
 }

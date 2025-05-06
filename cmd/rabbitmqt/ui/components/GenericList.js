@@ -362,7 +362,7 @@ export default function GenericList({
           <div class="flex items-center join">
             <div class="relative join-item flex-grow">
               <input
-                class="input input-bordered w-full pr-8"
+                class="input input-bordered bg-base-200 w-full pr-8"
                 type="text"
                 placeholder="Search"
                 value=${searchName.value}

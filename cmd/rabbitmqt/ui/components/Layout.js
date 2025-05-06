@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION } from '../store.js';
+import { url, username, password, fetchData, overview, fastMode, theme, toggleTheme, activeTab, changeTab, toasts, VERSION } from '../store.js';
 
 // Navigation bar component with connection inputs and controls
 export function NavBar() {
@@ -14,7 +14,7 @@ export function NavBar() {
       <div class="flex-none flex flex-wrap items-center gap-2">
         <div class="relative">
           <input
-            class="input input-bordered w-48 pr-8"
+            class="input input-bordered bg-base-200 w-48 pr-8"
             type="text"
             placeholder="URL"
             value=${url.value}
@@ -32,7 +32,7 @@ export function NavBar() {
         </div>
         <div class="relative">
           <input
-            class="input input-bordered w-32 pr-8"
+            class="input input-bordered bg-base-200 w-32 pr-8"
             type="text"
             placeholder="Username"
             value=${username.value}
@@ -50,7 +50,7 @@ export function NavBar() {
         </div>
         <div class="relative">
           <input
-            class="input input-bordered w-32 pr-8"
+            class="input input-bordered bg-base-200 w-32 pr-8"
             type="password"
             placeholder="Password"
             value=${password.value}
@@ -69,11 +69,20 @@ export function NavBar() {
         <button
           class=${`btn ml-2 ${fastMode.value ? 'btn-accent' : ''}`}
           type="button"
-          title="Fast Mode (Disable Stats"
+          title="Fast Mode"
           onClick=${() => (fastMode.value = !fastMode.value)}
           disabled=${overview.loading.value}
         >
           <i class="mdi mdi-flash"></i>
+        </button>
+        <button
+          class=${`btn ml-2 ${theme.value === 'dark' ? 'btn-accent' : ''}`}
+          type="button"
+          title="Toggle dark/light mode"
+          onClick=${toggleTheme}
+          disabled=${overview.loading.value}
+        >
+          <i class=${`mdi ${theme.value === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night'}`}></i>
         </button>
         <button
           class=${`btn btn-primary ml-2`}
