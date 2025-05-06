@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { url, username, password, fetchData, overview, fastMode, theme, toggleTheme, activeTab, changeTab, toasts, VERSION } from '../store.js';
+import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION } from '../store.js';
 
 // Navigation bar component with connection inputs and controls
 export function NavBar() {
@@ -74,15 +74,6 @@ export function NavBar() {
           disabled=${overview.loading.value}
         >
           <i class="mdi mdi-flash"></i>
-        </button>
-        <button
-          class=${`btn ml-2 ${theme.value === 'dark' ? 'btn-accent' : ''}`}
-          type="button"
-          title="Toggle dark/light mode"
-          onClick=${toggleTheme}
-          disabled=${overview.loading.value}
-        >
-          <i class=${`mdi ${theme.value === 'dark' ? 'mdi-weather-sunny' : 'mdi-weather-night'}`}></i>
         </button>
         <button
           class=${`btn btn-primary ml-2`}
