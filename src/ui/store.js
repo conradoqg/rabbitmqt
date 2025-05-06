@@ -5,6 +5,8 @@ export const url = signal('');
 export const username = signal('');
 export const password = signal('');
 export const activeTab = signal('overview');
+// Fast mode for GET API calls: when enabled, add RabbitMQ query params to optimize performance
+export const fastMode = signal(false);
 
 // Overview state
 export const overview = {
@@ -23,7 +25,13 @@ export const PAGE_SIZE = 10;
 // Internal helper for proxying requests with basic auth
 export async function fetchProxy(path) {
   const base = url.value.replace(/\/$/, '');
-  const fullPath = base + path;
+  // Build full path
+  let fullPath = base + path;
+  // If fast mode is enabled and this is not the channels endpoint, append fast query params
+  if (fastMode.value && !path.startsWith('/api/channels')) {
+    const fastParams = 'enable_queue_totals=true&disable_stats=true';
+    fullPath += (fullPath.includes('?') ? '&' : '?') + fastParams;
+  }
   const proxyUrl = `/proxy/${fullPath}`;
   const headers = {};
   if (username.value) {

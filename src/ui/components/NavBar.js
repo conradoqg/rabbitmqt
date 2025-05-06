@@ -1,5 +1,5 @@
 import { html } from 'htm/preact';
-import { url, username, password, fetchData, overview } from '../store.js';
+import { url, username, password, fetchData, overview, fastMode } from '../store.js';
 
 export default function NavBar() {
   return html`
@@ -32,6 +32,15 @@ export default function NavBar() {
           onInput=${e => (password.value = e.target.value)}
           disabled=${overview.loading.value}
         />
+        <label class="flex items-center ml-2">
+          <input
+            type="checkbox"
+            checked=${fastMode.value}
+            onChange=${e => (fastMode.value = e.target.checked)}
+            disabled=${overview.loading.value}
+          />
+          <span class="ml-1">Fast Mode</span>
+        </label>
         <button
           class=${`btn btn-primary ml-2`}
           disabled=${overview.loading.value}
