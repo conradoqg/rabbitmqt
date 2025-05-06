@@ -8,27 +8,27 @@
   <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
   <!-- Tailwind CSS with DaisyUI plugin -->
   <script type="module">
-    import daisyui from 'https://esm.sh/daisyui';
+    import daisyui from 'https://esm.sh/daisyui?min';
     tailwind.config = { plugins: [daisyui] };
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
   <script type="importmap">
-        {
-          "imports": {
-            "preact": "https://esm.sh/preact@10.23.1",
-            "preact/": "https://esm.sh/preact@10.23.1/",
-            "htm/preact": "https://esm.sh/htm@3.1.0/preact",
-            "react": "https://esm.sh/preact@10.23.1/compat",
-            "react/": "https://esm.sh/preact@10.23.1/compat/",
-            "react-dom": "https://esm.sh/preact@10.23.1/compat",
-            "@preact/signals": "https://esm.sh/@preact/signals?external=preact",
-            "dayjs": "https://esm.sh/dayjs@1.11.10",
-            "dayjs/plugin/relativeTime": "https://esm.sh/dayjs@1.11.10/plugin/relativeTime",
-            "numeral": "https://esm.sh/numeral@2.0.6"
-          }
-        }
-    </script>
+    {
+      "imports": {
+        "preact": "https://esm.sh/preact@10.23.1?min",
+        "preact/hooks": "https://esm.sh/preact@10.23.1/hooks?min",
+        "htm/preact": "https://esm.sh/htm@3.1.0/preact?min",
+        "react": "https://esm.sh/preact@10.23.1/compat?min",
+        "react/": "https://esm.sh/preact@10.23.1/compat?min/",
+        "react-dom": "https://esm.sh/preact@10.23.1/compat?min",
+        "@preact/signals": "https://esm.sh/@preact/signals?external=preact&min",
+        "dayjs": "https://esm.sh/dayjs@1.11.10?min",
+        "dayjs/plugin/relativeTime": "https://esm.sh/dayjs@1.11.10/plugin/relativeTime?min",
+        "numeral": "https://esm.sh/numeral@2.0.6?min"
+      }
+    }
+  </script>
 </head>
 
 <body>
