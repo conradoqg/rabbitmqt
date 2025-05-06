@@ -63,8 +63,17 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	proxReq.Host = parsedURL.Host
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(proxReq)
+   // Determine proxy timeout: default to 5 minutes, override via PROXY_TIMEOUT env var (e.g., "2m", "120s")
+   proxyTimeout := 5 * time.Minute
+   if env := os.Getenv("PROXY_TIMEOUT"); env != "" {
+       if d, err := time.ParseDuration(env); err == nil {
+           proxyTimeout = d
+       } else {
+           log.Printf("Invalid PROXY_TIMEOUT '%s', using default %v: %v", env, proxyTimeout, err)
+       }
+   }
+   client := &http.Client{Timeout: proxyTimeout}
+   resp, err := client.Do(proxReq)
 	if err != nil {
 		http.Error(w, "Upstream error: "+err.Error(), http.StatusBadGateway)
 		return
