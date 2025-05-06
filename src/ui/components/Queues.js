@@ -6,6 +6,7 @@ import GroupBytesComponent from './cell/GroupBytesComponent.js';
 import RecordComponent from './cell/RecordComponent.js';
 import ArrayComponent from './cell/ArrayComponent.js';
 import NameCell from './cell/NameCell.js';
+import ConfirmQueueComponent from './cell/ConfirmQueueComponent.js';
 import TimestampRender from './cell/TimestampRender.js';
 import RateRender from './cell/RateRender.js';
 import ByteRender from './cell/ByteRender.js';
@@ -67,6 +68,7 @@ const columns = [
   { group: 'Replication', field: 'recoverable_slaves', shortName: 'Recoverable', displayName: 'Recoverable Slaves', component: ArrayComponent },
   { group: 'Replication', field: 'slave_nodes', shortName: 'Slaves', displayName: 'Slave Nodes', component: ArrayComponent },
   { group: 'Replication', field: 'synchronised_slave_nodes', shortName: 'Synced', displayName: 'Synchronised Slave Nodes', component: ArrayComponent },
+  { group: 'Actions', field: 'purge', shortName: 'Purge', component: ConfirmQueueComponent },
 ];
 
 export default function Queues() {
