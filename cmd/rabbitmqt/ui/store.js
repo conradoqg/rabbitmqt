@@ -51,7 +51,10 @@ export async function fetchProxy(path) {
     const fastParams = 'enable_queue_totals=true&disable_stats=true';
     fullPath += (fullPath.includes('?') ? '&' : '?') + fastParams;
   }
-  const proxyUrl = `/proxy/${fullPath}`;
+  const prefix = typeof window !== 'undefined'
+    ? window.location.pathname.replace(/\/$/, '')
+    : '';
+  const proxyUrl = `${prefix}/proxy/${fullPath}`;
   const headers = {};
   if (username.value) {
     headers['Authorization'] = 'Basic ' + btoa(username.value + ':' + password.value);

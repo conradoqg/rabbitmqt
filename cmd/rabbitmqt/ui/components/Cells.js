@@ -73,7 +73,10 @@ export function ConfirmQueueCell({ item }) {
       const encVh = vh === '/' ? '%252F' : encodeURIComponent(vh);
       const encName = encodeURIComponent(item.name);
       const endpoint = `/api/queues/${encVh}/${encName}/contents`;
-      const proxyUrl = `/proxy/${base}${endpoint}`;
+      const prefix = typeof window !== 'undefined'
+        ? window.location.pathname.replace(/\/$/, '')
+        : '';
+      const proxyUrl = `${prefix}/proxy/${base}${endpoint}`;
       const headers = {};
       if (username.value) {
         headers['Authorization'] = 'Basic ' + btoa(username.value + ':' + password.value);
