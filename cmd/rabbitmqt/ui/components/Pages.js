@@ -2,9 +2,9 @@ import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
 import {
   NameCell,
-  StateCell,
+  QueueStateCell,
   RecordCell,
-  GroupMessageRateCell,
+  GroupQueueMessageRateCell,
   GroupMessagesCell,
   GroupBytesCell,
   ArrayCell,
@@ -13,7 +13,17 @@ import {
   NumberRender,
   ByteRender,
   RateRender,
-  PercentageRender
+  PercentageRender,
+  GroupChannelMessageRateCell,
+  SSLCell,
+  GroupTrafficCountCell,
+  GroupTrafficBytesCell,
+  GroupTrafficRateCell,
+  GroupPublishCell,
+  DurationRender,
+  PeerCell,
+  ConnectionStateCell,
+  ChannelCell
 } from './Cells.js';
 // Overview page moved into Pages.js
 import { overview, fetchData } from '../store.js';
@@ -32,6 +42,7 @@ export function Overview() {
     <div>
       <h1 class="text-2xl font-bold mb-4">Overview</h1>
       <div class="flex flex-wrap justify-between items-center mb-4">
+      <div class="flex flex-wrap items-center gap-4"></div>
         <button class="btn btn-primary" onClick=${fetchData} disabled=${loading.value}>
           ${loading.value ? html`<span class="loading loading-spinner"></span>` : 'Refresh'}
         </button>
@@ -190,65 +201,51 @@ export function Overview() {
   `;
 }
 
-// Channels list page
-const channelsColumns = [
-  { field: 'vhost', shortName: 'Vhost', group: 'General', component: NameCell, width: 'max-w-[150px]' },
-  { field: 'name', shortName: 'Name', group: 'General', component: NameCell, width: 'max-w-[300px]' },
-  { field: 'connection_details.name', shortName: 'Connection', displayName: 'Connection Name', group: 'General', component: NameCell },
-  { field: 'connection_details.peer_host', shortName: 'Peer Host', group: 'General' },
-  { field: 'number', shortName: '#', group: 'General', render: NumberRender },
-  { field: 'consumer_count', shortName: 'Consumers', group: 'General', render: NumberRender },
-  { field: 'state', shortName: 'State', group: 'General', component: StateCell, align: 'center' },
-  { field: 'idle_since', shortName: 'Idle Since', group: 'Stats', render: TimestampRender },
-  { field: 'message_stats', shortName: 'Msg Stats', displayName: 'Message Stats', group: 'Stats', sortable: false, component: GroupMessageRateCell },
-  { field: 'pending_raft_commands', shortName: 'RAFT', group: 'Stats', render: NumberRender },
-  { field: 'reductions', shortName: 'Reductions', group: 'Stats', render: NumberRender },
-  { field: 'reductions_details.rate', shortName: 'Reductions Rate', group: 'Stats', render: RateRender },
-  { field: 'prefetch_count', shortName: 'Prefetch', group: 'Settings', render: NumberRender },
-  { field: 'confirm', shortName: 'Confirm', group: 'Settings', align: 'center' },
-  { field: 'transactional', shortName: 'Transactional', group: 'Settings', align: 'center' },
-  { field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', group: 'Settings', component: RecordCell },
-  { field: 'user', shortName: 'User', group: 'Audit', component: NameCell },
-  { field: 'user_who_performed_action', shortName: 'User Action', group: 'Audit', component: NameCell },
-];
-
-export function Channels() {
-  return html`
-    <${GenericList}
-      title="Channels"
-      route="channels"
-      defaultSortDir="desc"
-      defaultSortField="message_stats.deliver_details.rate"
-      columns=${channelsColumns}
-    />`;
-}
-
 // Connections list page
 const connectionsColumns = [
-  { field: 'vhost', shortName: 'Vhost', group: 'General', component: NameCell, width: 'max-w-[150px]' },
-  { field: 'name', shortName: 'Name', group: 'General', component: NameCell, width: 'max-w-[300px]' },
-  { field: 'user', shortName: 'User', group: 'General', component: NameCell, width: 'max-w-[150px]' },
-  { field: 'type', shortName: 'Type', group: 'General' },
-  { field: 'protocol', shortName: 'Protocol', group: 'General' },
-  { field: 'node', shortName: 'Node', group: 'General', visible: false },
-  { field: 'connected_at', shortName: 'Connected', group: 'General', render: TimestampRender },
-  { field: 'channels', shortName: 'Channels', group: 'Channels', render: NumberRender },
-  { field: 'channel_max', shortName: 'Max Chan', group: 'Channels', render: NumberRender },
-  { field: 'recv_cnt', shortName: 'Recv Count', group: 'Traffic', render: NumberRender },
-  { field: 'recv_oct', shortName: 'Recv Bytes', group: 'Traffic', render: ByteRender },
-  { field: 'recv_oct_details.rate', shortName: 'Recv Rate', group: 'Traffic', render: RateRender },
-  { field: 'send_cnt', shortName: 'Send Count', group: 'Traffic', render: NumberRender },
-  { field: 'send_oct', shortName: 'Send Bytes', group: 'Traffic', render: ByteRender },
-  { field: 'send_oct_details.rate', shortName: 'Send Rate', group: 'Traffic', render: RateRender },
-  { field: 'reductions', shortName: 'Reductions', group: 'Traffic', render: NumberRender },
-  { field: 'reductions_details.rate', shortName: 'Reductions Rate', group: 'Traffic', render: RateRender },
-  { field: 'state', shortName: 'State', group: 'General', component: StateCell, align: 'center' },
-  { field: 'ssl', shortName: 'SSL', group: 'Security', align: 'center' },
-  { field: 'auth_mechanism', shortName: 'Auth Mech', group: 'Security' },
-  { field: 'timeout', shortName: 'Timeout', group: 'Settings', render: NumberRender },
-  { field: 'user_who_performed_action', shortName: 'User Action', group: 'Audit', component: NameCell, width: 'max-w-[150px]' },
-  { field: 'client_properties', shortName: 'Props', displayName: 'Client Properties', group: 'Settings', component: RecordCell },
-  { field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', group: 'Settings', component: RecordCell },
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'user_provided_name', shortName: 'User Provided Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'user', shortName: 'User', component: NameCell, width: 'max-w-[150px]' },
+  { group: 'General', field: 'type', shortName: 'Type' },
+  { group: 'General', field: 'state', shortName: 'State', component: ConnectionStateCell, align: 'center' },
+  { group: 'General', field: 'protocol', shortName: 'Protocol' },
+  { group: 'General', field: 'node', shortName: 'Node', visible: false },
+  { group: 'General', field: 'connected_at', shortName: 'Connected', render: TimestampRender },
+  { group: 'Connection', field: 'host', shortName: 'Host', visible: false, component: NameCell },
+  { group: 'Connection', field: 'port', shortName: 'Port', visible: false },
+  { group: 'Connection', field: 'peer_host', shortName: 'Peer Host', visible: false, component: NameCell },
+  { group: 'Connection', field: 'peer_port', shortName: 'Peer Port', visible: false },
+  { group: 'Connection', field: 'peer_detail', shortName: 'Detail', displayName: 'Peer Detail', sortable: false, component: PeerCell },
+  { group: 'Connection', field: 'peer_cert_issuer', shortName: 'Cert Issuer', displayName: 'Peer Cert Issuer', visible: false },
+  { group: 'Connection', field: 'peer_cert_subject', shortName: 'Cert Subject', displayName: 'Peer Cert Subject', visible: false },
+  { group: 'Connection', field: 'peer_cert_validity', shortName: 'Cert Validity', displayName: 'Peer Cert Validity', visible: false },
+  { group: 'Channels', field: 'channels', shortName: 'Channels', render: NumberRender },
+  { group: 'Channels', field: 'channel_max', shortName: 'Max Chan', render: NumberRender },
+  { group: 'Traffic Count', field: 'cnt_stats', shortName: 'Stats', sortable: false, component: GroupTrafficCountCell },
+  { group: 'Traffic Count', field: 'recv_cnt', shortName: 'Recv Count', visible: false, render: NumberRender },
+  { group: 'Traffic Count', field: 'send_cnt', shortName: 'Send Count', visible: false, render: NumberRender },
+  { group: 'Traffic Bytes', field: 'bytes_stats', shortName: 'Stats', sortable: false, component: GroupTrafficBytesCell },
+  { group: 'Traffic Bytes', field: 'recv_oct', shortName: 'Recv Bytes', visible: false, render: ByteRender },
+  { group: 'Traffic Bytes', field: 'send_oct', shortName: 'Send Bytes', visible: false, render: ByteRender },
+  { group: 'Traffic Rate', field: 'rate_stats', shortName: 'Stats', sortable: false, component: GroupTrafficRateCell },
+  { group: 'Traffic Rate', field: 'recv_oct_details.rate', shortName: 'Recv Rate', visible: false, render: RateRender },
+  { group: 'Traffic Rate', field: 'send_oct_details.rate', shortName: 'Send Rate', visible: false, render: RateRender },
+  { group: 'Traffic', field: 'send_pend', shortName: 'Pending', displayName: 'Send Pending', render: NumberRender },
+  { group: 'Reductions', field: 'reductions', shortName: '∑', displayName: 'Total', render: NumberRender },
+  { group: 'Reductions', field: 'reductions_details.rate', shortName: 'Rate', displayName: 'Reductions Rate', render: RateRender },
+  { group: 'Security', field: 'ssl', shortName: 'SSL', align: 'center' },
+  { group: 'Security', field: 'ssl_details', shortName: 'Details', displayName: 'SSL Details', align: 'center', sortable: false, component: SSLCell },
+  { group: 'Security', field: 'ssl_cipher', shortName: 'Cipher', displayName: 'SSL Cipher', align: 'center', visible: false, component: SSLCell },
+  { group: 'Security', field: 'ssl_hash', shortName: 'Hash', displayName: 'SSL Hash', align: 'center', visible: false, component: SSLCell },
+  { group: 'Security', field: 'ssl_key_exchange', shortName: 'Key Exchange', displayName: 'SSL Key Exchange', align: 'center', visible: false, component: SSLCell },
+  { group: 'Security', field: 'ssl_protocol', shortName: 'Protocol', displayName: 'SSL Protocol', align: 'center', visible: false, component: SSLCell },
+  { group: 'Security', field: 'auth_mechanism', shortName: 'Auth Mech', },
+  { group: 'Settings', field: 'timeout', shortName: 'Timeout', render: DurationRender },
+  { group: 'Settings', field: 'client_properties', shortName: 'Props', displayName: 'Client Properties', component: RecordCell },
+  { group: 'Settings', field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', component: RecordCell },
+  { group: 'Settings', field: 'frame_max', shortName: 'Frame Max', render: ByteRender },
+  { group: 'Audit', field: 'user_who_performed_action', shortName: 'User Who Performed Action', visible: false, component: NameCell, width: 'max-w-[150px]' },
 ];
 
 export function Connections() {
@@ -257,24 +254,72 @@ export function Connections() {
       title="Connections"
       route="connections"
       defaultSortDir="desc"
-      defaultSortField="connected_at"
+      defaultSortField="recv_oct_details.rate"
       columns=${connectionsColumns}
+    />`;
+}
+
+// Channels list page
+const channelsColumns = [
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'node', shortName: 'Node', component: NameCell, visible: false },
+  { group: 'General', field: 'consumer_count', shortName: 'Consumers', render: NumberRender },
+  { group: 'General', field: 'state', shortName: 'State', component: ChannelCell, align: 'center' },
+  { group: 'Connection', field: 'connection_details.name', shortName: 'Connection', displayName: 'Connection Name', visible: false, component: NameCell },
+  { group: 'Connection', field: 'number', shortName: '#', displayName: 'Connection Number', visible: false, render: NumberRender },
+  { group: 'Connection', field: 'connection_details.peer_host', shortName: 'Peer Host', visible: false },
+  { group: 'Connection', field: 'connection_details.peer_port', shortName: 'Peer Port', visible: false },
+  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', displayName: 'Message Rate Stats', sortable: false, component: GroupChannelMessageRateCell },
+  { group: 'Message Rate', field: 'message_stats.publish_details.rate', shortName: 'Publish', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.ack_details.rate', shortName: 'Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.redeliver_details.rate', shortName: 'Redeliver', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_details.rate', shortName: 'Deliver', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_get_details.rate', shortName: 'Deliver Get', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_no_ack_details.rate', shortName: 'Deliver No Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_details.rate', shortName: 'Get Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_empty_details.rate', shortName: 'Get Empty Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_no_ack_details.rate', shortName: 'Get No Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.confirm_details.rate', shortName: 'Confirm', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.drop_unroutable.rate', shortName: 'Drop Unroutable', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.return_unroutable.rate', shortName: 'Return Unroutable', visible: false, render: RateRender },
+  { group: 'Timestamps', field: 'idle_since', shortName: 'Idle Since', render: TimestampRender },
+  { group: 'RAFT', field: 'pending_raft_commands', shortName: 'PC', displayName: 'Pending Commands', render: NumberRender },
+  { group: 'Reductions', field: 'reductions', shortName: '∑', displayName: 'Total', render: NumberRender },
+  { group: 'Reductions', field: 'reductions_details.rate', shortName: 'Rate', displayName: 'Reductions Rate', render: RateRender },
+  { group: 'Settings', field: 'prefetch_count', shortName: 'P', displayName: 'Prefetch', render: NumberRender },
+  { group: 'Settings', field: 'confirm', shortName: 'C', displayName: 'Confirm', align: 'center' },
+  { group: 'Settings', field: 'transactional', shortName: 'T', shortName: 'Transactional', align: 'center' },
+  { group: 'Settings', field: 'garbage_collection', shortName: 'GC', displayName: 'Garbage Collection', component: RecordCell },
+  { group: 'Audit', field: 'user', shortName: 'User', component: NameCell },
+  { group: 'Audit', field: 'user_who_performed_action', shortName: 'User Who Performed Action', visible: false, component: NameCell },
+];
+
+export function Channels() {
+  return html`
+    <${GenericList}
+      title="Channels"
+      route="channels"
+      defaultSortDir="desc"
+      defaultSortField="message_stats.publish_details.rate"
+      columns=${channelsColumns}
     />`;
 }
 
 // Exchanges list page
 const exchangesColumns = [
-  { field: 'vhost', shortName: 'Vhost', group: '', component: NameCell, width: 'max-w-[150px]' },
-  { field: 'name', shortName: 'Name', group: '', component: NameCell, width: 'max-w-[300px]' },
-  { field: 'message_stats.publish_in_details.rate', shortName: 'Publish In', group: 'Stats', render: RateRender },
-  { field: 'message_stats.publish_ou_details.rate', shortName: 'Publish Out', group: 'Stats', render: RateRender },
-  { field: 'policy', shortName: 'Policy', group: 'Settings' },
-  { field: 'auto_delete', shortName: 'AD', group: 'Settings', displayName: 'Auto Delete' },
-  { field: 'durable', shortName: 'D', group: 'Settings', displayName: 'Durable' },
-  { field: 'internal', shortName: 'I', group: 'Settings', displayName: 'Internal' },
-  { field: 'type', shortName: 'Type', group: 'Settings' },
-  { field: 'arguments', shortName: 'A', group: 'Settings', displayName: 'Arguments', component: RecordCell },
-  { field: 'user_who_performed_action', shortName: 'User', group: 'Audit', component: NameCell, width: 'max-w-[150px]' },
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'Publish', field: 'message_stats', shortName: 'Stats', sortable: false, component: GroupPublishCell },
+  { group: 'Publish', field: 'message_stats.publish_in_details.rate', shortName: 'In', visible: false, render: RateRender },
+  { group: 'Publish', field: 'message_stats.publish_out_details.rate', shortName: 'Out', visible: false, render: RateRender },
+  { group: 'Settings', field: 'policy', shortName: 'Policy' },
+  { group: 'Settings', field: 'auto_delete', shortName: 'AD', displayName: 'Auto Delete' },
+  { group: 'Settings', field: 'durable', shortName: 'D', displayName: 'Durable' },
+  { group: 'Settings', field: 'internal', shortName: 'I', displayName: 'Internal' },
+  { group: 'Settings', field: 'type', shortName: 'Type' },
+  { group: 'Settings', field: 'arguments', shortName: 'A', displayName: 'Arguments', component: RecordCell },
+  { group: 'Audit', field: 'user_who_performed_action', shortName: 'User Who Performed Action', visible: false, component: NameCell, width: 'max-w-[150px]' },
 ];
 
 export function Exchanges() {
@@ -292,38 +337,38 @@ export function Exchanges() {
 const queuesColumns = [
   { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
   { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
-  { group: 'General', field: 'state', shortName: 'State', align: 'center', component: StateCell },
+  { group: 'General', field: 'state', shortName: 'State', align: 'center', component: QueueStateCell },
   { group: 'General', field: 'node', shortName: 'Node', visible: false },
   { group: 'General', field: 'type', shortName: 'Type' },
   { group: 'Policy', field: 'effective_policy_definition', shortName: 'E', displayName: 'Effective Policy Definition', component: RecordCell },
   { group: 'Policy', field: 'operator_policy', shortName: 'Operator', displayName: 'Operator Policy', visible: false },
   { group: 'Policy', field: 'policy', shortName: 'Policy' },
-  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', displayName: 'Message Rate Stats', sortable: false, component: GroupMessageRateCell },
-  { group: 'Message Rate', field: 'message_stats.publish_details.rate', shortName: 'Publish', displayName: 'Publish Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.ack_details.rate', shortName: 'Ack', displayName: 'Ack Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.redeliver_details.rate', shortName: 'Redeliver', displayName: 'Redeliver Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.deliver_details.rate', shortName: 'Deliver', displayName: 'Deliver Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.deliver_get_details.rate', shortName: 'Deliver Get', displayName: 'Deliver Get Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.deliver_no_ack_details.rate', shortName: 'Deliver No Ack', displayName: 'Deliver No Ack Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.get_details.rate', shortName: 'Get Ack', displayName: 'Get Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.get_empty_details.rate', shortName: 'Get Empty Ack', displayName: 'Get Empty Rate', visible: false, render: RateRender },
-  { group: 'Message Rate', field: 'message_stats.get_no_ack_details.rate', shortName: 'Get No Ack', displayName: 'Get No Ack Rate', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', displayName: 'Message Rate Stats', sortable: false, component: GroupQueueMessageRateCell },
+  { group: 'Message Rate', field: 'message_stats.publish_details.rate', shortName: 'Publish', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.ack_details.rate', shortName: 'Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.redeliver_details.rate', shortName: 'Redeliver', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_details.rate', shortName: 'Deliver', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_get_details.rate', shortName: 'Deliver Get', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_no_ack_details.rate', shortName: 'Deliver No Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_details.rate', shortName: 'Get Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_empty_details.rate', shortName: 'Get Empty Ack', visible: false, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_no_ack_details.rate', shortName: 'Get No Ack', visible: false, render: RateRender },
   { group: 'Messages', field: 'messages_stats', shortName: 'Stats', displayName: 'Messages Stats', sortable: false, component: GroupMessagesCell },
-  { group: 'Messages', field: 'messages', shortName: 'Messages', displayName: 'Messages', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_paged_out', shortName: 'Paged Out', displayName: 'Messages Paged Out', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_persistent', shortName: 'Persistent', displayName: 'Messages Persistent', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_ram', shortName: 'RAM', displayName: 'Messages RAM', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_ready', shortName: 'Ready', displayName: 'Messages Ready', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_ready_ram', shortName: 'Ready RAM', displayName: 'Messages Ready RAM', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_unacknowledged', shortName: 'Unacked', displayName: 'Messages Unacknowledged', visible: false, render: NumberRender },
-  { group: 'Messages', field: 'messages_unacknowledged_ram', shortName: 'Unacked RAM', displayName: 'Messages Unacknowledged RAM', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages', shortName: 'Messages', displayName: 'Total', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_paged_out', shortName: 'Paged Out', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_persistent', shortName: 'Persistent', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_ram', shortName: 'RAM', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_ready', shortName: 'Ready', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_ready_ram', shortName: 'Ready RAM', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_unacknowledged', shortName: 'Unacked', visible: false, render: NumberRender },
+  { group: 'Messages', field: 'messages_unacknowledged_ram', shortName: 'Unacked RAM', visible: false, render: NumberRender },
   { group: 'Bytes', field: 'bytes_stats', shortName: 'Stats', displayName: 'Bytes Stats', sortable: false, component: GroupBytesCell },
-  { group: 'Bytes', field: 'message_bytes', shortName: 'Bytes', displayName: 'Message Bytes', visible: false, render: ByteRender },
-  { group: 'Bytes', field: 'message_bytes_paged_out', shortName: 'Paged Out', displayName: 'Message Bytes Paged Out', visible: false, render: ByteRender },
-  { group: 'Bytes', field: 'message_bytes_persistent', shortName: 'Persistent', displayName: 'Message Bytes Persistent', visible: false, render: ByteRender },
-  { group: 'Bytes', field: 'message_bytes_ram', shortName: 'RAM', displayName: 'Message Bytes RAM', visible: false, render: ByteRender },
-  { group: 'Bytes', field: 'message_bytes_ready', shortName: 'Ready', displayName: 'Message Bytes Ready', visible: false, render: ByteRender },
-  { group: 'Bytes', field: 'message_bytes_unacknowledged', shortName: 'Unacked', displayName: 'Message Bytes Unacknowledged', visible: false, render: ByteRender },
+  { group: 'Bytes', field: 'message_bytes', shortName: 'Bytes', displayName: 'Total', visible: false, render: ByteRender },
+  { group: 'Bytes', field: 'message_bytes_paged_out', shortName: 'Paged Out', visible: false, render: ByteRender },
+  { group: 'Bytes', field: 'message_bytes_persistent', shortName: 'Persistent', visible: false, render: ByteRender },
+  { group: 'Bytes', field: 'message_bytes_ram', shortName: 'RAM', visible: false, render: ByteRender },
+  { group: 'Bytes', field: 'message_bytes_ready', shortName: 'Ready', visible: false, render: ByteRender },
+  { group: 'Bytes', field: 'message_bytes_unacknowledged', shortName: 'Unacked', visible: false, render: ByteRender },
   { group: 'Memory', field: 'memory', shortName: 'Memory', render: ByteRender },
   { group: 'Timestamps', field: 'head_message_timestamp', shortName: 'Head', displayName: 'Head Message Timestamp', render: TimestampRender },
   { group: 'Timestamps', field: 'idle_since', shortName: 'Idle Since', render: TimestampRender },

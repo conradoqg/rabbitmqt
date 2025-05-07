@@ -45,16 +45,16 @@ function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage
         Previous
       </button>
       ${links.map(link =>
-        link === '...'
-          ? html`<button class="btn join-item btn-disabled" disabled>…</button>`
-          : html`<button
+    link === '...'
+      ? html`<button class="btn join-item btn-disabled" disabled>…</button>`
+      : html`<button
               class=${`btn join-item ${link === page ? 'btn-active' : ''}${disabled ? ' btn-disabled' : ''}`}
               onClick=${() => goPage(link)}
               disabled=${disabled}
             >
               ${link}
             </button>`
-      )}
+  )}
       <button
         class=${`btn join-item ${(disabled || page === totalPages) ? 'btn-disabled' : ''}`}
         onClick=${nextPage}
@@ -459,7 +459,7 @@ export default function GenericList({
           if (val == null) return '';
           if (typeof val === 'boolean') return val ? '✔' : '✖';
           if (typeof val === 'object') return JSON.stringify(val);
-          if (typeof val === 'number') return val.toFixed(2)
+          if (typeof val === 'number') return val.toString()
           return String(val);
         };
         // Compute header grouping based on column metadata

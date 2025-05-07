@@ -54,6 +54,7 @@
         "@preact/signals": "https://esm.sh/@preact/signals?external=preact&min",
         "dayjs": "https://esm.sh/dayjs@1.11.10?min",
         "dayjs/plugin/relativeTime": "https://esm.sh/dayjs@1.11.10/plugin/relativeTime?min",
+        "dayjs/plugin/duration": "https://esm.sh/dayjs@1.11.10/plugin/duration?min",
         "numeral": "https://esm.sh/numeral@2.0.6?min"
       }
     }
@@ -71,8 +72,10 @@
     import { html } from 'htm/preact';
     import dayjs from 'dayjs';
     import relativeTime from 'dayjs/plugin/relativeTime';
+    import duration from 'dayjs/plugin/duration';
     import App from './App.js';
     dayjs.extend(relativeTime)
+    dayjs.extend(duration)
 
     render(html`<${App} />`, document.getElementById('app'));
   </script>
