@@ -6,7 +6,7 @@ export function NavBar() {
   return html`
     <nav class="navbar bg-base-100 shadow px-4">
       <div class="flex-1">
-        <a class="btn btn-ghost normal-case text-xl">
+        <a class="normal-case text-xl">
           RabbitMQT
           <span class="text-xs opacity-50 ml-2">v${VERSION}</span>
         </a>
@@ -15,6 +15,7 @@ export function NavBar() {
         <div class="relative">
           <input
             class="input input-bordered bg-base-200 w-48 pr-8"
+            id="url"
             type="text"
             placeholder="URL"
             value=${url.value}
@@ -33,6 +34,7 @@ export function NavBar() {
         <div class="relative">
           <input
             class="input input-bordered bg-base-200 w-32 pr-8"
+            id="username"
             type="text"
             placeholder="Username"
             value=${username.value}
@@ -52,6 +54,7 @@ export function NavBar() {
           <input
             class="input input-bordered bg-base-200 w-32 pr-8"
             type="password"
+            id="password"
             placeholder="Password"
             value=${password.value}
             onInput=${e => (password.value = e.target.value)}
