@@ -80,11 +80,7 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add(key, v)
 		}
 	}
-	// Add CORS headers for proxied response
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	w.Header().Set("Access-Control-Expose-Headers", "*")
+	// CORS headers are added by middleware
 	w.WriteHeader(resp.StatusCode)
 	io.Copy(w, resp.Body)
 }

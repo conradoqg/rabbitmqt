@@ -1,10 +1,11 @@
 package main
 
 import (
-	"log"
-	"net"
-	"net/http"
-	"time"
+   "log"
+   "net"
+   "net/http"
+   "os"
+   "time"
 )
 
 // responseLogger captures the status code and response size.
@@ -48,18 +49,38 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 // corsMiddleware adds CORS headers and handles preflight requests.
+// CORS behavior can be configured via environment variables:
+// CORS_ALLOW_ORIGIN, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS, CORS_EXPOSE_HEADERS.
 func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Expose-Headers", "*")
+   // Load CORS configuration from env vars (defaults apply if unset).
+   origin := os.Getenv("CORS_ALLOW_ORIGIN")
+   if origin == "" {
+       origin = "*"
+   }
+   methods := os.Getenv("CORS_ALLOW_METHODS")
+   if methods == "" {
+       methods = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+   }
+   headers := os.Getenv("CORS_ALLOW_HEADERS")
+   if headers == "" {
+       headers = "Content-Type, Authorization"
+   }
+   expose := os.Getenv("CORS_EXPOSE_HEADERS")
+   if expose == "" {
+       expose = "*"
+   }
 
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
+   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+       w.Header().Set("Access-Control-Allow-Origin", origin)
+       w.Header().Set("Access-Control-Allow-Methods", methods)
+       w.Header().Set("Access-Control-Allow-Headers", headers)
+       w.Header().Set("Access-Control-Expose-Headers", expose)
 
-		next.ServeHTTP(w, r)
-	})
+       if r.Method == http.MethodOptions {
+           w.WriteHeader(http.StatusOK)
+           return
+       }
+
+       next.ServeHTTP(w, r)
+   })
 }
