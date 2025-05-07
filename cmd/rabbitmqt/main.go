@@ -42,6 +42,26 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid proxy URL: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Only allow specific RabbitMQ HTTP API paths
+	allowedPrefixes := []string{
+		"/api/overview",
+		"/api/vhosts",
+		"/api/exchanges",
+		"/api/queues",
+		"/api/connections",
+		"/api/channels",
+	}
+	allowed := false
+	for _, pfx := range allowedPrefixes {
+		if strings.HasPrefix(parsedURL.Path, pfx) {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		http.Error(w, "Forbidden: only API paths under "+strings.Join(allowedPrefixes, ", ")+" are allowed", http.StatusForbidden)
+		return
+	}
 	// Create proxied request with same method and body
 	proxReq, err := http.NewRequest(r.Method, parsedURL.String(), r.Body)
 	if err != nil {
