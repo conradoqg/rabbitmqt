@@ -16,7 +16,7 @@ import (
 var embeddedUI embed.FS
 
 // Application version
-const Version = "1.0"
+const Version = "1.0.1"
 
 // proxyRawHandler handles path-based proxying: forwards any method, headers, body, and query to the target URL.
 func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,21 +107,21 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Printf("rabbitmqt version %s", Version)
-   // serve static files: from local ./ui if available, else from embedded assets
-   var fileSystem http.FileSystem
-   var useLocal bool
-   if stat, err := os.Stat("./ui"); err == nil && stat.IsDir() {
-       fileSystem = http.Dir("./ui")
-       useLocal = true
-       log.Println("Serving UI from local ./ui directory")
-   } else {
-       subFS, err := fs.Sub(embeddedUI, "ui")
-       if err != nil {
-           log.Fatalf("failed to access embedded UI assets: %v", err)
-       }
-       fileSystem = http.FS(subFS)
-       log.Println("Serving embedded UI assets")
-   }
+	// serve static files: from local ./ui if available, else from embedded assets
+	var fileSystem http.FileSystem
+	var useLocal bool
+	if stat, err := os.Stat("./ui"); err == nil && stat.IsDir() {
+		fileSystem = http.Dir("./ui")
+		useLocal = true
+		log.Println("Serving UI from local ./ui directory")
+	} else {
+		subFS, err := fs.Sub(embeddedUI, "ui")
+		if err != nil {
+			log.Fatalf("failed to access embedded UI assets: %v", err)
+		}
+		fileSystem = http.FS(subFS)
+		log.Println("Serving embedded UI assets")
+	}
 
 	// Create router and attach handlers
 	mux := http.NewServeMux()

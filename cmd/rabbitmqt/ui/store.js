@@ -11,7 +11,7 @@ export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
-export const VERSION = '1.0';
+export const VERSION = '1.0.1';
 
 // Navigation state
 export const activeTab = signal('overview');
@@ -182,7 +182,7 @@ export function toggleTheme() {
   if (typeof window !== 'undefined') {
     const t = theme.value;
     document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('rabbitmqtTheme', t); } catch {};
+    try { localStorage.setItem('rabbitmqtTheme', t); } catch { };
   }
 }
 
@@ -195,6 +195,6 @@ if (typeof window !== 'undefined') {
     } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       theme.value = 'dark';
     }
-  } catch {}
+  } catch { }
   document.documentElement.setAttribute('data-theme', theme.value);
 }

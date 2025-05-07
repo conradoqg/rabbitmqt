@@ -7,7 +7,7 @@ export function NavBar() {
     <nav class="navbar bg-base-100 shadow px-4">
       <div class="flex-1">
         <a class="btn btn-ghost normal-case text-xl">
-          RabbitMQ Management
+          RabbitMQT
           <span class="text-xs opacity-50 ml-2">v${VERSION}</span>
         </a>
       </div>
