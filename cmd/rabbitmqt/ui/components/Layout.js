@@ -72,7 +72,7 @@ export function NavBar() {
         <button
           class=${`btn ml-2 ${fastMode.value ? 'btn-accent' : ''}`}
           type="button"
-          title="Fast Mode"
+          title="Fast Mode (No Stats)"
           onClick=${() => (fastMode.value = !fastMode.value)}
           disabled=${overview.loading.value}
         >

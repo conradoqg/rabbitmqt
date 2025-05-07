@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab, addToast } from '../store.js';
+import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab, addToast, fastMode } from '../store.js';
 // Inline Pagination component
 function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage, onChangeItemsPerPage, disabled = false }) {
   const jumpPage = useSignal(String(page));
@@ -334,6 +334,10 @@ export default function GenericList({
   if (columnsProvided) {
     columns.forEach(c => { columnsMap[c.field] = c; });
   }
+  // Determine which columns are available (exclude those hidden in fast mode)
+  const availableColumns = fastMode.value
+    ? allKeys.filter(key => !columnsMap[key]?.hideInFastMode)
+    : allKeys;
   // Helper to get nested value by dot-separated path (e.g., 'a.b.c')
   const getValueByPath = (obj, path) =>
     path.split('.').reduce((acc, key) => (acc != null ? acc[key] : undefined), obj);
@@ -397,13 +401,13 @@ export default function GenericList({
               onChange=${e => { sortField.value = e.target.value }}
               disabled=${loading.value}
             >
-              ${allKeys
-      .filter(key => columnsMap[key]?.sortable !== false)
-      .map(key => html`
+              ${availableColumns
+                .filter(key => columnsMap[key]?.sortable !== false)
+                .map(key => html`
                   <option key=${key} value=${key}>
                     ${columnsMap[key]?.group
-          ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
-          : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+                      ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+                      : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
                   </option>
                 `)}
             </select>
@@ -426,7 +430,7 @@ export default function GenericList({
           <div class="dropdown dropdown-center">
             <label tabindex="0" class="btn btn-secondary" disabled=${loading.value}><i class="mdi mdi-view-column"></i></label>
             <div tabindex="0" class="dropdown-content shadow bg-base-100 rounded-box w-80 max-h-80 overflow-y-auto p-2 flex flex-col gap-2">
-              ${allKeys.map(key => html`
+              ${availableColumns.map(key => html`
                 <label class="flex items-center gap-2 whitespace-normal">
                   <input
                     type="checkbox"
@@ -435,8 +439,8 @@ export default function GenericList({
                   />
                   <span>
                     ${columnsMap[key]?.group
-              ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
-              : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+                      ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+                      : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
                   </span>
                 </label>
               `)}
@@ -455,6 +459,8 @@ export default function GenericList({
             <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-21rem)]">
               ${(() => {
         const items = data.value.items;
+        // Filter out fields marked to be hidden in fast mode
+        const filteredColumns = visibleColumns.value.filter(key => !(fastMode.value && columnsMap[key]?.hideInFastMode));
         const renderValue = val => {
           if (val == null) return '';
           if (typeof val === 'boolean') return val ? '✔' : '✖';
@@ -465,7 +471,7 @@ export default function GenericList({
         // Compute header grouping based on column metadata
         const headerGroups = [];
         if (columnsProvided) {
-          const groupList = visibleColumns.value.map(key => columnsMap[key]?.group || '');
+          const groupList = filteredColumns.map(key => columnsMap[key]?.group || '');
           let lastGroup = null;
           let span = 0;
           groupList.forEach((g, idx) => {
@@ -499,7 +505,7 @@ export default function GenericList({
                         </tr>
                       `}
                       <tr>
-                        ${visibleColumns.value.map(key => {
+                        ${filteredColumns.map(key => {
           const colMeta = columnsMap[key] || {};
           // Align and width classes; use width class from column metadata if provided
           // Apply text alignment: use configured align or default to left
@@ -522,7 +528,7 @@ export default function GenericList({
                     <tbody>
                       ${items.map(item => html`
                         <tr class="hover:bg-base-200">
-                          ${visibleColumns.value.map(key => {
+                          ${filteredColumns.map(key => {
           const colMeta = columnsMap[key] || {};
           const val = getValueByPath(item, key);
           // Align and width classes; use width class from column metadata if provided

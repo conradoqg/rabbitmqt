@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useRef } from 'preact/hooks';
-import { url, username, password, addToast } from '../store.js';
+import { url, username, password, addToast, fastMode } from '../store.js';
 import numberal from 'numeral';
 import dayjs from 'dayjs';
 
@@ -205,16 +205,25 @@ export function GroupQueueMessageRateCell({ value }) {
 }
 
 export function GroupMessagesCell({ item }) {
-  const entries = [
-    ['Total', item.messages, 'Total number of messages.', 'bg-success-content'],
-    ['Paged Out', item.messages_paged_out, 'Messages moved to disk.', 'bg-success'],
-    ['Persistent', item.messages_persistent, 'Persistent messages.', 'bg-error'],
-    ['RAM', item.messages_ram, 'Messages in RAM.', 'bg-info'],
-    ['Ready', item.messages_ready, 'Ready messages.', 'bg-secondary'],
-    ['Ready RAM', item.messages_ready_ram, 'Ready RAM messages.', 'bg-warning'],
-    ['Unacked', item.messages_unacknowledged, 'Unacknowledged messages.', 'bg-primary'],
-    ['Unacked RAM', item.messages_unacknowledged_ram, 'Unacked RAM messages.', 'bg-warning-content']
-  ];
+  let entries = null
+  if (fastMode.value) {
+    entries = [
+      ['Total', item.messages, 'Total number of messages.', 'bg-success-content'],
+      ['Ready', item.messages_ready, 'Ready messages.', 'bg-secondary'],
+      ['Unacked', item.messages_unacknowledged, 'Unacknowledged messages.', 'bg-primary'],
+    ];
+  } else {
+    entries = [
+      ['Total', item.messages, 'Total number of messages.', 'bg-success-content'],
+      ['Paged Out', item.messages_paged_out, 'Messages moved to disk.', 'bg-success'],
+      ['Persistent', item.messages_persistent, 'Persistent messages.', 'bg-error'],
+      ['RAM', item.messages_ram, 'Messages in RAM.', 'bg-info'],
+      ['Ready', item.messages_ready, 'Ready messages.', 'bg-secondary'],
+      ['Ready RAM', item.messages_ready_ram, 'Ready RAM messages.', 'bg-warning'],
+      ['Unacked', item.messages_unacknowledged, 'Unacknowledged messages.', 'bg-primary'],
+      ['Unacked RAM', item.messages_unacknowledged_ram, 'Unacked RAM messages.', 'bg-warning-content']
+    ];
+  }
 
   return html`<${GroupTable}
     entries=${entries}
