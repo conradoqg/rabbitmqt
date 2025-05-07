@@ -91,23 +91,57 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	log.Printf("rabbitmqt version %s", Version)
-	// serve static files: from local ./ui if available, else from embedded assets
-	var fileSystem http.FileSystem
-	if stat, err := os.Stat("./ui"); err == nil && stat.IsDir() {
-		fileSystem = http.Dir("./ui")
-		log.Println("Serving UI from local ./ui directory")
-	} else {
-		subFS, err := fs.Sub(embeddedUI, "ui")
-		if err != nil {
-			log.Fatalf("failed to access embedded UI assets: %v", err)
-		}
-		fileSystem = http.FS(subFS)
-		log.Println("Serving embedded UI assets")
-	}
+   // serve static files: from local ./ui if available, else from embedded assets
+   var fileSystem http.FileSystem
+   var useLocal bool
+   if stat, err := os.Stat("./ui"); err == nil && stat.IsDir() {
+       fileSystem = http.Dir("./ui")
+       useLocal = true
+       log.Println("Serving UI from local ./ui directory")
+   } else {
+       subFS, err := fs.Sub(embeddedUI, "ui")
+       if err != nil {
+           log.Fatalf("failed to access embedded UI assets: %v", err)
+       }
+       fileSystem = http.FS(subFS)
+       log.Println("Serving embedded UI assets")
+   }
 
 	// Create router and attach handlers
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(fileSystem))
+	// Serve index.html with DEFAULT_URL injection and other static assets
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// If root or index.html, inject DEFAULT_URL placeholder
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+			var data []byte
+			var err error
+			if useLocal {
+				data, err = os.ReadFile("./ui/index.html")
+			} else {
+				f, errOpen := fileSystem.Open("index.html")
+				if errOpen != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+				data, err = io.ReadAll(f)
+				f.Close()
+			}
+			if err != nil {
+				http.Error(w, "Failed to read index.html", http.StatusInternalServerError)
+				return
+			}
+			defaultUrl := os.Getenv("DEFAULT_URL")
+			// Escape for JS string literal
+			escaped := strings.ReplaceAll(defaultUrl, "\\", "\\\\")
+			escaped = strings.ReplaceAll(escaped, "\"", "\\\"")
+			content := strings.ReplaceAll(string(data), "%%DEFAULT_URL%%", escaped)
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte(content))
+			return
+		}
+		// Serve other static assets
+		http.FileServer(fileSystem).ServeHTTP(w, r)
+	})
 	// Proxy endpoint with CORS and logging middleware
 	mux.Handle("/proxy/", loggingMiddleware(corsMiddleware(http.HandlerFunc(proxyRawHandler))))
 

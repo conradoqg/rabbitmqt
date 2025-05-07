@@ -12,7 +12,8 @@
             "program": "${workspaceFolder}/cmd/rabbitmqt/",
             "env": {
                 // Example: override proxy timeout for debugging
-                "PROXY_TIMEOUT": "5m"
+                "PROXY_TIMEOUT": "5m",
+                "DEFAULT_URL": "http://localhost:15672"
             },
             "console": "integratedTerminal"
         },

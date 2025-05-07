@@ -5,7 +5,9 @@ import { signal, batch } from '@preact/signals';
  */
 
 // Authentication state
-export const url = signal('');
+// Prefill URL from environment variable injected as window.DEFAULT_URL
+const initialUrl = (typeof window !== 'undefined' && window.DEFAULT_URL) ? window.DEFAULT_URL : '';
+export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
