@@ -502,7 +502,8 @@ export default function GenericList({
                         ${visibleColumns.value.map(key => {
           const colMeta = columnsMap[key] || {};
           // Align and width classes; use width class from column metadata if provided
-          const baseClass = colMeta.align ? `text-${colMeta.align}` : '';
+          // Apply text alignment: use configured align or default to left
+          const baseClass = colMeta.align ? `text-${colMeta.align}` : 'text-left';
           const widthClass = colMeta.width ? ` ${colMeta.width}` : '';
           const alignClass = `${baseClass}${widthClass}`;
           return html`
@@ -525,7 +526,8 @@ export default function GenericList({
           const colMeta = columnsMap[key] || {};
           const val = getValueByPath(item, key);
           // Align and width classes; use width class from column metadata if provided
-          const baseClass = colMeta.align ? `text-${colMeta.align}` : '';
+          // Apply text alignment: use configured align or default to left
+          const baseClass = colMeta.align ? `text-${colMeta.align}` : 'text-left';
           const widthClass = colMeta.width ? ` ${colMeta.width}` : '';
           const alignClass = `${baseClass}${widthClass}`;
           if (colMeta.component) {
