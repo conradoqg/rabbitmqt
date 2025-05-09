@@ -114,6 +114,25 @@ export default function GenericList({
   const searchName = useSignal('');
   const searchUseRegex = useSignal(false);
   const visibleColumns = useSignal([]);
+  // Toggle between showing group (stats) columns and individual detail columns
+  const showStats = useSignal(false);
+  // Function to toggle stats vs detail view and adjust visible columns
+  const toggleStatsView = () => {
+    showStats.value = !showStats.value;
+    if (columnsProvided) {
+      if (showStats.value) {
+        // show only stats and non-detail columns by default visibility
+        visibleColumns.value = columns
+          .filter(c => c.visible !== false && !c.detailOf)
+          .map(c => c.field);
+      } else {
+        // show detail columns and non-stats columns by default visibility
+        visibleColumns.value = columns
+          .filter(c => (c.detailOf) || (c.visible !== false && !c.statsOf))
+          .map(c => c.field);
+      }
+    }
+  };
   // Initialize list state from URL search params
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -352,7 +371,7 @@ export default function GenericList({
               class="select select-bordered join-item"
               value=${selectedVhost.value}
               onChange=${e => { selectedVhost.value = e.target.value }}
-              disabled=${loading.value}
+              disabled=${loading.value}              
             >
               <option value="all">All</option>
               ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
@@ -361,6 +380,7 @@ export default function GenericList({
               class="btn btn-secondary join-item"
               onClick=${() => changeVhost(selectedVhost.value)}
               disabled=${loading.value}
+              title="Select vhost"
             ><i class="mdi mdi-arrow-right-bold"></i></button>
           </div>
           <div class="flex items-center join">
@@ -387,11 +407,13 @@ export default function GenericList({
               class=${`btn ${searchUseRegex.value ? 'btn-accent' : ''} join-item`}
               onClick=${() => { searchUseRegex.value = !searchUseRegex.value }}
               disabled=${loading.value}
+              title="Use regex for search"
             ><i class="mdi mdi-regex"></i></button>
             <button
               class="btn btn-secondary join-item"
               onClick=${() => { page.value = 1; fetchList(); updateURL(); }}
               disabled=${loading.value}
+              title="Search by name"
             ><i class="mdi mdi-magnify"></i></button>
           </div>
           <div class="flex items-center join">
@@ -402,12 +424,12 @@ export default function GenericList({
               disabled=${loading.value}
             >
               ${availableColumns
-                .filter(key => columnsMap[key]?.sortable !== false)
-                .map(key => html`
+      .filter(key => columnsMap[key]?.sortable !== false)
+      .map(key => html`
                   <option key=${key} value=${key}>
                     ${columnsMap[key]?.group
-                      ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
-                      : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+          ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+          : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
                   </option>
                 `)}
             </select>
@@ -425,10 +447,18 @@ export default function GenericList({
               class="btn btn-secondary join-item"
               onClick=${() => { page.value = 1; fetchList(); updateURL(); }}
               disabled=${loading.value}
+              title="Sort by selected field and direction"
             ><i class="mdi mdi-sort"></i></button>
           </div>
           <div class="dropdown dropdown-center">
-            <label tabindex="0" class="btn btn-secondary" disabled=${loading.value}><i class="mdi mdi-view-column"></i></label>
+            <label 
+              tabindex="0" 
+              class="btn btn-secondary" 
+              disabled=${loading.value}
+              title="Select columns to display"
+              >
+              <i class="mdi mdi-view-column-outline"></i>
+            </label>
             <div tabindex="0" class="dropdown-content shadow bg-base-100 rounded-box w-80 max-h-80 overflow-y-auto p-2 flex flex-col gap-2">
               ${availableColumns.map(key => html`
                 <label class="flex items-center gap-2 whitespace-normal">
@@ -439,13 +469,21 @@ export default function GenericList({
                   />
                   <span>
                     ${columnsMap[key]?.group
-                      ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
-                      : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
+              ? `${columnsMap[key].group}: ${columnsMap[key]?.displayName || headerNamesMap[key] || key}`
+              : (columnsMap[key]?.displayName || headerNamesMap[key] || key)}
                   </span>
                 </label>
               `)}
-            </div>
           </div>
+          </div>
+          <button
+            class="btn btn-secondary join-item"
+            onClick=${toggleStatsView}
+            disabled=${loading.value}
+            title="Switch between stats and detail view"
+          >
+            ${showStats.value ? html`<i class="mdi mdi-reorder-horizontal"></i>` : html`<i class="mdi mdi-reorder-vertical"></i>`}
+          </button>
         </div>
         <button
           class=${`btn btn-primary`}
@@ -460,7 +498,16 @@ export default function GenericList({
               ${(() => {
         const items = data.value.items;
         // Filter out fields marked to be hidden in fast mode
-        const filteredColumns = visibleColumns.value.filter(key => !(fastMode.value && columnsMap[key]?.hideInFastMode));
+        const filteredColumns = visibleColumns.value.filter(key => {
+          // respect fast mode hiding
+          if (fastMode.value && columnsMap[key]?.hideInFastMode) return false;
+          const meta = columnsMap[key] || {};
+          // hide detail columns when showing stats
+          if (showStats.value && meta.detailOf) return false;
+          // hide stats columns when showing details
+          if (!showStats.value && meta.statsOf) return false;
+          return true;
+        });
         const renderValue = val => {
           if (val == null) return '';
           if (typeof val === 'boolean') return val ? '✔' : '✖';
