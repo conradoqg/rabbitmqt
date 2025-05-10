@@ -194,9 +194,20 @@ export default function GenericList({
     try {
       const vh = selectedVhost.value;
       const encodedVhost = vh === '/' ? '%252F' : encodeURIComponent(vh);
-      const basePath = vh === 'all'
-        ? `/api/${route}`
-        : `/api/${route}/${encodedVhost}`;
+      let basePath;
+      const extraHeaders = {};
+      // For connections and channels, RabbitMQ HTTP API does not take vhost in URL; filter via X-Vhost header
+      if (route === 'connections' || route === 'channels') {
+        basePath = `/api/${route}`;
+        if (vh !== 'all') {
+          extraHeaders['X-Vhost'] = vh;
+        }
+      } else {
+        // Other resources: include vhost in path
+        basePath = vh === 'all'
+          ? `/api/${route}`
+          : `/api/${route}/${encodedVhost}`;
+      }
       let params = `?page=${page.value}&page_size=${itemsPerPage.value}` +
         `&sort=${sortField.value}` +
         `&sort_reverse=${sortDir.value === 'desc'}`;
@@ -204,7 +215,7 @@ export default function GenericList({
         params += `&name=${encodeURIComponent(searchName.value)}`;
       }
       params += `&use_regex=${searchUseRegex.value}`;
-      const res = await fetchProxy(basePath + params);
+      const res = await fetchProxy(basePath + params, extraHeaders);
       const json = await res.json();
       // Handle server-side page_out_of_range error: bounce to the last valid page
       if (json.error === 'page_out_of_range') {

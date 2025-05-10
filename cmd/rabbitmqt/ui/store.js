@@ -42,9 +42,10 @@ export const PAGE_SIZE = 10;
 /**
  * Proxy API requests with Basic Auth and optional fast mode parameters.
  * @param {string} path - API endpoint path (e.g., '/api/overview').
+ * @param {Object<string,string>} [extraHeaders] - Optional additional headers to include.
  * @returns {Promise<Response>}
  */
-export async function fetchProxy(path) {
+export async function fetchProxy(path, extraHeaders = {}) {
   const base = url.value.replace(/\/$/, '');
   // Build full path
   let fullPath = base + path;
@@ -60,6 +61,12 @@ export async function fetchProxy(path) {
   const headers = {};
   if (username.value) {
     headers['Authorization'] = 'Basic ' + btoa(username.value + ':' + password.value);
+  }
+  // include any extra headers (e.g., X-Vhost for connections filter)
+  for (const [k, v] of Object.entries(extraHeaders)) {
+    if (v != null) {
+      headers[k] = v;
+    }
   }
   const res = await fetch(proxyUrl, { method: 'GET', headers });
   if (!res.ok) {
