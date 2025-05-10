@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab, addToast, fastMode } from '../store.js';
+import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab, addToast, fastMode, selectedVhost } from '../store.js';
 // Inline Pagination component
 function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage, onChangeItemsPerPage, disabled = false }) {
   const jumpPage = useSignal(String(page));
@@ -109,7 +109,6 @@ export default function GenericList({
   // Sort field and direction, initialized from props
   const sortField = useSignal(defaultSortField);
   const sortDir = useSignal(defaultSortDir);
-  const selectedVhost = useSignal('all');
   const itemsPerPage = useSignal(PAGE_SIZE);
   const searchName = useSignal('');
   const searchUseRegex = useSignal(false);
@@ -294,12 +293,7 @@ export default function GenericList({
     }
   }
 
-  function changeVhost(vh) {
-    selectedVhost.value = vh;
-    page.value = 1;
-    fetchList();
-    updateURL();
-  }
+  // Global selectedVhost change triggers refetch via useEffect below
 
   const items = data.value?.items || [];
   // Determine columns: use provided metadata or infer keys dynamically
@@ -329,17 +323,20 @@ export default function GenericList({
   }, [data.value]);
 
 
-  // Fetch list when vhosts are loaded and this tab becomes active
+  // Reload data when this tab becomes active and a vhost is selected
+  const lastVhost = useSignal(null);
   useEffect(() => {
-    if (
-      vhosts.value.length > 0 &&
-      !data.value &&
-      !loading.value &&
-      activeTab.value === route
-    ) {
-      fetchList();
-    }
-  }, [vhosts.value, activeTab.value]);
+    if (activeTab.value !== route) return;
+    // wait until vhosts list is populated
+    if (vhosts.value.length === 0) return;
+    // only fetch when vhost actually changed
+    if (selectedVhost.value === lastVhost.value) return;
+    page.value = 1;
+    fetchList()
+      .then(() => { lastVhost.value = selectedVhost.value; })
+      .catch(() => {});
+    updateURL();
+  }, [activeTab.value, selectedVhost.value, vhosts.value]);
   // Handler for changing items per page
   function changePageSize(size) {
     itemsPerPage.value = size;
@@ -376,24 +373,7 @@ export default function GenericList({
     <div class="flex flex-col h-full">
       <h1 class="text-2xl font-bold mb-4">${title}</h1>
       <div class="flex flex-wrap justify-between items-center mb-4">
-        <div class="flex flex-wrap items-center gap-4">
-          <div class="flex items-center join">
-            <select
-              class="select select-bordered join-item"
-              value=${selectedVhost.value}
-              onChange=${e => { selectedVhost.value = e.target.value }}
-              disabled=${loading.value}              
-            >
-              <option value="all">All</option>
-              ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
-            </select>
-            <button
-              class="btn btn-secondary join-item"
-              onClick=${() => changeVhost(selectedVhost.value)}
-              disabled=${loading.value}
-              title="Select vhost"
-            ><i class="mdi mdi-arrow-right-bold"></i></button>
-          </div>
+      <div class="flex flex-wrap items-center gap-4">
           <div class="flex items-center join">
             <div class="relative join-item flex-grow">
               <input

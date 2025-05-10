@@ -32,6 +32,8 @@ export const overview = {
 
 // Virtual hosts list state
 export const vhosts = signal([]);
+// Global selected vhost for all views
+export const selectedVhost = signal('all');
 
 
 /**
@@ -149,17 +151,25 @@ export function changeTab(tab) {
  * Initialize activeTab from URL search params and handle browser navigation.
  */
 if (typeof window !== 'undefined') {
-  // Use ALLOWED_TABS constant for valid tab identifiers
+  // Initialize activeTab and selectedVhost from URL search params
   const sp = new URLSearchParams(window.location.search);
   const tabParam = sp.get('tab');
   if (ALLOWED_TABS.includes(tabParam)) {
     activeTab.value = tabParam;
+  }
+  const vhParam = sp.get('vhost');
+  if (vhParam != null) {
+    selectedVhost.value = vhParam;
   }
   window.addEventListener('popstate', () => {
     const sp2 = new URLSearchParams(window.location.search);
     const t = sp2.get('tab');
     if (ALLOWED_TABS.includes(t)) {
       activeTab.value = t;
+    }
+    const vh2 = sp2.get('vhost');
+    if (vh2 != null) {
+      selectedVhost.value = vh2;
     }
   });
 }

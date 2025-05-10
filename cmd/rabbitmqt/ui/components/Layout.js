@@ -1,5 +1,7 @@
 import { html } from 'htm/preact';
-import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION } from '../store.js';
+import { useSignal } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
+import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION, vhosts, selectedVhost } from '../store.js';
 
 // Navigation bar component with connection inputs and controls
 export function NavBar() {
@@ -93,16 +95,39 @@ export function NavBar() {
 // Tabs for navigating between different management views
 export function Tabs() {
   const tabs = ['overview', 'connections', 'channels', 'exchanges', 'queues'];
+  const pendingVhost = useSignal(selectedVhost.value);
+  // Sync pending selector when selectedVhost changes (e.g., from URL param or programmatically)
+  useEffect(() => {
+    pendingVhost.value = selectedVhost.value;
+  }, [selectedVhost.value]);
   return html`
-    <div class="tabs tabs-boxed mb-4">
-      ${tabs.map(tab => html`
-        <a
-          class=${`tab ${activeTab.value === tab ? 'tab-active' : ''}`}
-          onClick=${() => changeTab(tab)}
+    <div class="flex items-center justify-between mb-4">
+      <div class="tabs tabs-boxed">
+        ${tabs.map(tab => html`
+          <a
+            class=${`tab ${activeTab.value === tab ? 'tab-active' : ''}`}
+            onClick=${() => changeTab(tab)}
+          >
+            ${tab.charAt(0).toUpperCase() + tab.slice(1)}
+          </a>
+        `)}
+      </div>
+      <div class="flex items-center join">
+        <select
+          class="select select-bordered join-item"
+          value=${pendingVhost.value}
+          onChange=${e => (pendingVhost.value = e.target.value)}
         >
-          ${tab.charAt(0).toUpperCase() + tab.slice(1)}
-        </a>
-      `)}
+          <option value="all">All</option>
+          ${vhosts.value.map(vh => html`<option key=${vh} value=${vh}>${vh}</option>`)}
+        </select>
+        <button
+          class="btn btn-secondary join-item"
+          disabled=${pendingVhost.value === selectedVhost.value}
+          onClick=${() => (selectedVhost.value = pendingVhost.value)}
+          title="Selected"
+        ><i class="mdi mdi-arrow-right-bold"></i></button>
+      </div>
     </div>
   `;
 }
