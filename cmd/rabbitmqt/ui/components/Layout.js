@@ -94,7 +94,15 @@ export function NavBar() {
 
 // Tabs for navigating between different management views
 export function Tabs() {
-  const tabs = ['overview', 'connections', 'channels', 'exchanges', 'queues'];
+  const tabs = [
+    'overview',
+    'connections',
+    'channels',
+    'exchanges',
+    'queues',
+    'policies',
+    'limits',
+  ];
   const pendingVhost = useSignal(selectedVhost.value);
   // Sync pending selector when selectedVhost changes (e.g., from URL param or programmatically)
   useEffect(() => {

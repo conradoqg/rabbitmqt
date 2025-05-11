@@ -100,7 +100,11 @@ export default function GenericList({
   columns, // optional array of column metadata; each may include: field, shortName, displayName, group, render, component, align, visible, sortable (default true)
   // initial sort field and direction
   defaultSortField = 'name',
-  defaultSortDir = 'asc'
+  defaultSortDir = 'asc',
+  // clientSide: if true, fetch full data and perform search, sort, and pagination in the client
+  clientSide = false,
+  // pagination: if true, show pagination UI and paginate results (server- or client-side)
+  pagination = true
 }) {
   const data = useSignal(null);
   const loading = useSignal(false);
@@ -163,7 +167,12 @@ export default function GenericList({
     sp.set('sortField', sortField.value);
     sp.set('sortDir', sortDir.value);
     sp.set('pageSize', String(itemsPerPage.value));
-    if (searchName.value) sp.set('search', searchName.value);
+    if (searchName.value) {
+      sp.set('search', searchName.value);
+    } else {
+      sp.delete('search');
+    }
+    // Always set regex flag (true/false)
     sp.set('regex', String(searchUseRegex.value));
     window.history.pushState(null, '', `${window.location.pathname}?${sp.toString()}`);
   }
@@ -195,9 +204,18 @@ export default function GenericList({
       const encodedVhost = vh === '/' ? '%252F' : encodeURIComponent(vh);
       let basePath;
       const extraHeaders = {};
-      // For connections and channels, RabbitMQ HTTP API does not take vhost in URL; filter via X-Vhost header
-      if (route === 'connections' || route === 'channels') {
-        basePath = `/api/${route}`;
+      // Determine API base path and headers. Some endpoints use X-Vhost header instead of vhost in path
+      let apiRoute = route;
+      // Map UI route 'limits' to the API endpoint 'vhost-limits'
+      if (route === 'limits') apiRoute = 'vhost-limits';
+      // Endpoints using X-Vhost header (no vhost in URL)
+      if (
+        apiRoute === 'connections' ||
+        apiRoute === 'channels' ||
+        apiRoute === 'policies' ||
+        apiRoute === 'vhost-limits'
+      ) {
+        basePath = `/api/${apiRoute}`;
         if (vh !== 'all') {
           extraHeaders['X-Vhost'] = vh;
         }
@@ -207,46 +225,132 @@ export default function GenericList({
           ? `/api/${route}`
           : `/api/${route}/${encodedVhost}`;
       }
-      let params = `?page=${page.value}&page_size=${itemsPerPage.value}` +
-        `&sort=${sortField.value}` +
-        `&sort_reverse=${sortDir.value === 'desc'}`;
-      if (searchName.value) {
-        params += `&name=${encodeURIComponent(searchName.value)}`;
-      }
-      params += `&use_regex=${searchUseRegex.value}`;
-      const res = await fetchProxy(basePath + params, extraHeaders);
-      const json = await res.json();
-      // Handle server-side page_out_of_range error: bounce to the last valid page
-      if (json.error === 'page_out_of_range') {
-        const reason = json.reason || '';
-        const lenMatch = reason.match(/len:\s*(\d+)/i);
-        const sizeMatch = reason.match(/page size:\s*(\d+)/i);
-        const totalCount = lenMatch ? parseInt(lenMatch[1], 10) : 0;
-        const pageSize = sizeMatch ? parseInt(sizeMatch[1], 10) : itemsPerPage.value;
-        const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
-        if (page.value !== lastPage) {
-          page.value = lastPage;
+      if (!clientSide) {
+        // Server-side fetch: pagination, sort, and search performed on server
+        let params = `?page=${page.value}&page_size=${itemsPerPage.value}` +
+          `&sort=${sortField.value}` +
+          `&sort_reverse=${sortDir.value === 'desc'}`;
+        if (searchName.value) {
+          params += `&name=${encodeURIComponent(searchName.value)}`;
+        }
+        params += `&use_regex=${searchUseRegex.value}`;
+        const res = await fetchProxy(basePath + params, extraHeaders);
+        const json = await res.json();
+        // Handle server-side page_out_of_range error: bounce to the last valid page
+        if (json.error === 'page_out_of_range') {
+          const reason = json.reason || '';
+          const lenMatch = reason.match(/len:\s*(\d+)/i);
+          const sizeMatch = reason.match(/page size:\s*(\d+)/i);
+          const totalCount = lenMatch ? parseInt(lenMatch[1], 10) : 0;
+          const pageSize = sizeMatch ? parseInt(sizeMatch[1], 10) : itemsPerPage.value;
+          const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
+          if (page.value !== lastPage) {
+            page.value = lastPage;
+            updateURL();
+            return fetchList();
+          }
+          if (page.value !== 1) {
+            page.value = 1;
+            updateURL();
+            return fetchList();
+          }
+        }
+        // Server-side bounce: if page_count provided and requested page exceeds it, go to last page
+        if (json.page_count > 0 && page.value > json.page_count) {
+          page.value = json.page_count;
           updateURL();
           return fetchList();
         }
-        if (page.value !== 1) {
-          page.value = 1;
+        // Normal server response
+        data.value = {
+          items: json.items || [],
+          totalPages: json.page_count,
+          page: json.page,
+        };
+      } else {
+        // Client-side fetch: retrieve full data and apply filter, sort, and pagination locally
+        const res = await fetchProxy(basePath, extraHeaders);
+        const jsonData = await res.json();
+        // Extract items array (API may return array or object with items)
+        let allItems = Array.isArray(jsonData)
+          ? jsonData
+          : (jsonData.items || []);
+        // For limits endpoint, use vhost as the name property for client-side search
+        if (route === 'limits') {
+          allItems = allItems.map(item => ({ ...item, name: item.vhost }));
+        }
+        // Apply search filter
+        // Apply search filter across all string and number fields (recursive)
+        let filtered = allItems;
+        if (searchName.value) {
+          const term = searchName.value;
+          // Helper to test a single primitive value
+          const testPrimitive = (val) => {
+            if (val == null) return false;
+            const s = String(val);
+            if (searchUseRegex.value) {
+              try {
+                return new RegExp(term).test(s);
+              } catch (_) {
+                return false;
+              }
+            }
+            return s.toLowerCase().includes(term.toLowerCase());
+          };
+          // Recursive search in objects/arrays
+          const matches = (obj) => {
+            if (obj == null) return false;
+            if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean') {
+              return testPrimitive(obj);
+            }
+            if (Array.isArray(obj)) {
+              return obj.some(item => matches(item));
+            }
+            if (typeof obj === 'object') {
+              return Object.values(obj).some(value => matches(value));
+            }
+            return false;
+          };
+          filtered = filtered.filter(item => matches(item));
+        }
+        // Apply sorting
+        const getValue = (path, obj) =>
+          path.split('.').reduce((o, k) => (o != null ? o[k] : undefined), obj);
+        filtered.sort((a, b) => {
+          let va = getValue(sortField.value, a);
+          let vb = getValue(sortField.value, b);
+          if (va == null) va = '';
+          if (vb == null) vb = '';
+          const asc = sortDir.value === 'asc';
+          if (typeof va === 'number' && typeof vb === 'number') {
+            return asc ? va - vb : vb - va;
+          }
+          const sa = String(va);
+          const sb = String(vb);
+          return asc ? sa.localeCompare(sb) : sb.localeCompare(sa);
+        });
+        // Pagination on client side
+        const totalCount = filtered.length;
+        const totalPages = pagination
+          ? Math.max(1, Math.ceil(totalCount / itemsPerPage.value))
+          : 1;
+        // Bounce page if out of range
+        if (pagination && page.value > totalPages) {
+          page.value = totalPages;
           updateURL();
           return fetchList();
         }
+        const pageStart = pagination ? (page.value - 1) * itemsPerPage.value : 0;
+        const pageEnd = pagination ? pageStart + itemsPerPage.value : totalCount;
+        const pageItems = pagination
+          ? filtered.slice(pageStart, pageEnd)
+          : filtered;
+        data.value = {
+          items: pageItems,
+          totalPages,
+          page: page.value,
+        };
       }
-      // Client-side bounce: if page_count provided and requested page exceeds it, go to last page
-      if (json.page_count > 0 && page.value > json.page_count) {
-        page.value = json.page_count;
-        updateURL();
-        return fetchList();
-      }
-      // Normal response
-      data.value = {
-        items: json.items || [],
-        totalPages: json.page_count,
-        page: json.page,
-      };
     } catch (e) {
       error.value = e.message;
       // Show error via toast
@@ -589,18 +693,20 @@ export default function GenericList({
                 `;
       })()}
             </div>
-            <div class="card-actions justify-center p-4">
-              <${Pagination}
-                page=${page.value}
-                totalPages=${data.value.totalPages}
-                prevPage=${prevPage}
-                nextPage=${nextPage}
-                goPage=${goPage}
-                itemsPerPage=${itemsPerPage.value}
-                onChangeItemsPerPage=${changePageSize}
-                disabled=${loading.value}
-              />
-            </div>
+            ${pagination && html`
+              <div class="card-actions justify-center p-4">
+                <${Pagination}
+                  page=${page.value}
+                  totalPages=${data.value.totalPages}
+                  prevPage=${prevPage}
+                  nextPage=${nextPage}
+                  goPage=${goPage}
+                  itemsPerPage=${itemsPerPage.value}
+                  onChangeItemsPerPage=${changePageSize}
+                  disabled=${loading.value}
+                />
+              </div>
+            `}
           </div>
         </div>
       `}

@@ -21,7 +21,16 @@ export const fastMode = signal(false);
 // UI theme: 'light' or 'dark'
 export const theme = signal('light');
 // Allowed tabs for deep linking and navigation
-const ALLOWED_TABS = ['overview', 'exchanges', 'queues', 'connections', 'channels'];
+// Note: policies and limits tabs use client-side search and require X-Vhost header
+const ALLOWED_TABS = [
+  'overview',
+  'connections',
+  'channels',
+  'exchanges',
+  'queues',
+  'policies',
+  'limits',
+];
 
 // Overview state
 export const overview = {

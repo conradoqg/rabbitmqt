@@ -23,7 +23,8 @@ import {
   DurationRender,
   PeerCell,
   ConnectionStateCell,
-  ChannelCell
+  ChannelCell,
+  ExpandedRecordCell
 } from './Cells.js';
 // Overview page moved into Pages.js
 import { overview, fetchData, fastMode } from '../store.js';
@@ -398,5 +399,45 @@ export function Queues() {
       defaultSortDir="desc"
       defaultSortField=${fastMode.value ? "messages" : "message_stats.deliver_details.rate"}
       columns=${queuesColumns}
+    />`;
+}
+
+// Policies list page: client-side search and sort, no pagination on server
+const policiesColumns = [
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
+  { group: 'General', field: 'pattern', shortName: 'Pattern' },
+  { group: 'General', field: 'apply-to', shortName: 'Apply To', displayName: 'Apply To' },
+  { group: 'General', field: 'priority', shortName: 'Priority', render: NumberRender },
+  { group: 'Definition', field: 'definition', shortName: 'Definition', component: ExpandedRecordCell },
+];
+export function Policies() {
+  return html`
+    <${GenericList}
+      title="Policies"
+      route="policies"
+      defaultSortField="name"
+      defaultSortDir="asc"
+      clientSide
+      pagination=${false}
+      columns=${policiesColumns}
+    />`;
+}
+
+// Vhost limits list page: client-side search and sort, uses X-Vhost header
+const limitsColumns = [
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
+  { group: 'Limits', field: 'value', shortName: 'Limits', component: ExpandedRecordCell },
+];
+export function Limits() {
+  return html`
+    <${GenericList}
+      title="Limits"
+      route="limits"
+      defaultSortField="vhost"
+      defaultSortDir="asc"
+      clientSide
+      pagination=${false}
+      columns=${limitsColumns}
     />`;
 }

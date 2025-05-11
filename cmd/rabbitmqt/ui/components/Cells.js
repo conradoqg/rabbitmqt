@@ -334,6 +334,34 @@ function flattenProps(obj, prefix = '') {
   });
 }
 
+/**
+ * ExpandedRecordCell: renders an object inline with bold keys and normal values.
+ * Nested objects are indented by two character spaces per level.
+ */
+export function ExpandedRecordCell({ value }) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || !Object.keys(value).length) {
+    return null;
+  }
+  // Recursive rendering of object properties
+  const renderLines = (obj, indent = 0) => {
+    return Object.entries(obj).flatMap(([k, v]) => {
+      const margin = `${indent * 2}ch`;
+      if (v && typeof v === 'object' && !Array.isArray(v)) {
+        // Parent key line
+        const parentLine = html`<div style="margin-left:${margin}" class="text-xs"><strong>${k}</strong>:</div>`;
+        // Child lines
+        const children = renderLines(v, indent + 1);
+        return [parentLine, ...children];
+      }
+      // Primitive or array value
+      const disp = Array.isArray(v) ? JSON.stringify(v) : String(v);
+      return html`<div style="margin-left:${margin}" class="text-xs"><strong>${k}</strong>: ${disp}</div>`;
+    });
+  };
+  const lines = renderLines(value, 0);
+  return html`<div class="flex flex-col">${lines}</div>`;
+}
+
 function createNumeralRender(format, prefix = '', suffix = '') {
   return function NumeralRender(value) {
     const finalValue = value != null ? value : 0;
