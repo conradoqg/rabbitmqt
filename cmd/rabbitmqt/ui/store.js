@@ -40,63 +40,19 @@ export const selectedVhost = signal('all');
  * Default number of items per page in list views.
  */
 export const PAGE_SIZE = 10;
+import ApiService from './api.js';
 
-/**
- * Proxy API requests with Basic Auth and optional fast mode parameters.
- * @param {string} path - API endpoint path (e.g., '/api/overview').
- * @param {Object<string,string>} [extraHeaders] - Optional additional headers to include.
- * @returns {Promise<Response>}
- */
-export async function fetchProxy(path, extraHeaders = {}) {
-  const base = url.value.replace(/\/$/, '');
-  // Build full path
-  let fullPath = base + path;
-  // If fast mode is enabled and this is not the channels endpoint, append fast query params
-  if (fastMode.value && !path.startsWith('/api/channels')) {
-    const fastParams = 'enable_queue_totals=true&disable_stats=true';
-    fullPath += (fullPath.includes('?') ? '&' : '?') + fastParams;
-  }
-  const prefix = typeof window !== 'undefined'
-    ? window.location.pathname.replace(/\/$/, '')
-    : '';
-  const proxyUrl = `${prefix}/proxy/${fullPath}`;
-  const headers = {};
-  if (username.value) {
-    headers['Authorization'] = 'Basic ' + btoa(username.value + ':' + password.value);
-  }
-  // include any extra headers (e.g., X-Vhost for connections filter)
-  for (const [k, v] of Object.entries(extraHeaders)) {
-    if (v != null) {
-      headers[k] = v;
-    }
-  }
-  const res = await fetch(proxyUrl, { method: 'GET', headers });
-  if (!res.ok) {
-    // If server indicates page out of range, return response for caller to handle bounce logic
-    if (res.status === 400) {
-      let errJson = null;
-      try {
-        // Clone response to avoid consuming the original body
-        errJson = await res.clone().json();
-      } catch (_) {
-        /* ignore parse errors */
-      }
-      if (errJson && errJson.error === 'page_out_of_range') {
-        return res;
-      }
-    }
-    // For other errors, attempt to extract message and throw
-    let errMsg;
-    try {
-      const errObj = await res.clone().json();
-      errMsg = errObj.reason || errObj.error || `${res.status} ${res.statusText}`;
-    } catch (_) {
-      errMsg = `${res.status} ${res.statusText}`;
-    }
-    throw new Error(errMsg);
-  }
-  return res;
-}
+// Instantiate API service with state signals
+const api = new ApiService({
+  urlSignal: url,
+  usernameSignal: username,
+  passwordSignal: password,
+  fastModeSignal: fastMode,
+});
+
+/** Proxy API requests via API service. */
+export const fetchProxy = api.proxyFetch.bind(api);
+
 
 /**
  * Fetch overview data and list of virtual hosts.
