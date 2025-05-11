@@ -62,6 +62,106 @@ export default class ApiService {
     }
     return res;
   }
+  /**
+   * Generic request via proxy for methods other than GET (e.g., DELETE).
+   * @param {string} method - HTTP method.
+   * @param {string} path - API endpoint path.
+   * @param {Object<string, string>} [extraHeaders] - Optional headers.
+   * @returns {Promise<Response>}
+   */
+  async request(method, path, extraHeaders = {}) {
+    const base = this.urlSignal.value.replace(/\/$/, '');
+    let fullPath = base + path;
+    const prefix = typeof window !== 'undefined'
+      ? window.location.pathname.replace(/\/$/, '')
+      : '';
+    const proxyUrl = `${prefix}/proxy/${fullPath}`;
+    const headers = {};
+    if (this.usernameSignal.value) {
+      headers['Authorization'] = 'Basic ' + btoa(
+        this.usernameSignal.value + ':' + this.passwordSignal.value
+      );
+    }
+    for (const [k, v] of Object.entries(extraHeaders)) {
+      if (v != null) headers[k] = v;
+    }
+    const res = await fetch(proxyUrl, { method, headers });
+    if (!res.ok) {
+      let errMsg;
+      try {
+        errMsg = await res.text() || `${res.status} ${res.statusText}`;
+      } catch {
+        errMsg = `${res.status} ${res.statusText}`;
+      }
+      throw new Error(errMsg);
+    }
+    return res;
+  }
+
+  /**
+   * Purge all messages from a queue.
+   * @param {string} vhost - Virtual host name.
+   * @param {string} queueName - Name of the queue.
+   * @returns {Promise<void>} resolved when deletion succeeds.
+   */
+  async purgeQueue(vhost, queueName) {
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    const encName = encodeURIComponent(queueName);
+    const endpoint = `/api/queues/${encVh}/${encName}/contents`;
+    await this.request('DELETE', endpoint);
+  }
+
+  /**
+   * Fetch a paginated, sorted, filtered list for a given resource.
+   * @param {string} route - Resource endpoint (e.g., 'queues').
+   * @param {Object} [opts] - Query options.
+   * @param {string} opts.vhost - Virtual host filter.
+   * @param {number} opts.page
+   * @param {number} opts.pageSize
+   * @param {string} opts.sortField
+   * @param {boolean} opts.sortReverse
+   * @param {string} opts.searchName
+   * @param {boolean} opts.useRegex
+   * @returns {Promise<any>} JSON response object.
+   */
+  async fetchList(route, {
+    vhost = 'all',
+    page = 1,
+    pageSize = 10,
+    sortField = 'name',
+    sortReverse = false,
+    searchName = '',
+    useRegex = false,
+  } = {}) {
+    const extraHeaders = {};
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    let path;
+    if (route === 'connections' || route === 'channels') {
+      path = `/api/${route}`;
+      if (vhost !== 'all') {
+        extraHeaders['X-Vhost'] = vhost;
+      }
+    } else {
+      path = vhost === 'all'
+        ? `/api/${route}`
+        : `/api/${route}/${encVh}`;
+    }
+    let params = `?page=${page}&page_size=${pageSize}` +
+      `&sort=${sortField}` +
+      `&sort_reverse=${sortReverse}`;
+    if (searchName) {
+      params += `&name=${encodeURIComponent(searchName)}`;
+    }
+    params += `&use_regex=${useRegex}`;
+    const res = await this.proxyFetch(path + params, extraHeaders);
+    return res.json();
+  }
+
+  /** Resource-specific fetch methods as convenience wrappers **/
+  fetchExchanges(opts)   { return this.fetchList('exchanges', opts); }
+  fetchQueues(opts)      { return this.fetchList('queues', opts); }
+  fetchConnections(opts) { return this.fetchList('connections', opts); }
+  fetchChannels(opts)    { return this.fetchList('channels', opts); }
 
   /**
    * Fetch overview data from /api/overview.

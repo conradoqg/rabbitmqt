@@ -49,9 +49,19 @@ const api = new ApiService({
   passwordSignal: password,
   fastModeSignal: fastMode,
 });
-
 /** Proxy API requests via API service. */
-export const fetchProxy = api.proxyFetch.bind(api);
+export const fetchProxy      = api.proxyFetch.bind(api);
+/** API service instance for direct access */
+export const apiService      = api;
+/** Direct API methods bound to the service */
+export const fetchOverview   = api.fetchOverview.bind(api);
+export const fetchVhosts     = api.fetchVhosts.bind(api);
+export const fetchList       = api.fetchList.bind(api);
+export const fetchExchanges  = api.fetchExchanges.bind(api);
+export const fetchQueues     = api.fetchQueues.bind(api);
+export const fetchConnections= api.fetchConnections.bind(api);
+export const fetchChannels   = api.fetchChannels.bind(api);
+export const purgeQueue      = api.purgeQueue.bind(api);
 
 
 /**
@@ -69,10 +79,9 @@ export async function fetchData() {
     overview.data.value = null;
   });
   try {
-    const ovrRes = await fetchProxy('/api/overview');
-    overview.data.value = await ovrRes.json();
-    const vhsRes = await fetchProxy('/api/vhosts');
-    const vhsData = await vhsRes.json();
+    const overviewData = await fetchOverview();
+    overview.data.value = overviewData;
+    const vhsData = await fetchVhosts();
     vhosts.value = vhsData.map(v => v.name);
   } catch (e) {
     overview.error.value = e.message;

@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useRef } from 'preact/hooks';
-import { url, username, password, addToast, fastMode } from '../store.js';
+import { addToast, purgeQueue } from '../store.js';
 import numberal from 'numeral';
 import dayjs from 'dayjs';
 
@@ -38,24 +38,7 @@ export function ConfirmQueueCell({ item }) {
     if (inputRef.current) inputRef.current.checked = false;
     isLoading.value = true;
     try {
-      const base = url.value.replace(/\/$/, '');
-      const vh = item.vhost;
-      const encVh = vh === '/' ? '%252F' : encodeURIComponent(vh);
-      const encName = encodeURIComponent(item.name);
-      const endpoint = `/api/queues/${encVh}/${encName}/contents`;
-      const prefix = typeof window !== 'undefined'
-        ? window.location.pathname.replace(/\/$/, '')
-        : '';
-      const proxyUrl = `${prefix}/proxy/${base}${endpoint}`;
-      const headers = {};
-      if (username.value) {
-        headers['Authorization'] = 'Basic ' + btoa(username.value + ':' + password.value);
-      }
-      const res = await fetch(proxyUrl, { method: 'DELETE', headers });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `${res.status} ${res.statusText}`);
-      }
+      await purgeQueue(item.vhost, item.name);
       addToast(`Purged queue: ${item.name}`, 'success');
     } catch (e) {
       console.error('Error purging queue:', e);
