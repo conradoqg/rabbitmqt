@@ -92,8 +92,16 @@ export async function fetchData() {
   try {
     const overviewData = await fetchOverview();
     overview.data.value = overviewData;
-    const vhsData = await fetchVhosts();
-    vhosts.value = vhsData.map(v => v.name);
+    // Always use fast mode for fetching vhost names (only names needed)
+    const prevFast = fastMode.value;
+    fastMode.value = true;
+    try {
+      const vhsData = await fetchVhosts();
+      vhosts.value = vhsData.map(v => v.name);
+    } finally {
+      // restore fast mode to previous setting
+      fastMode.value = prevFast;
+    }
   } catch (e) {
     overview.error.value = e.message;
     // Show error via toast
