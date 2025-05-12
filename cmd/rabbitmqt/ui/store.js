@@ -5,8 +5,16 @@ import { signal, batch } from '@preact/signals';
  */
 
 // Authentication state
-// Prefill URL from environment variable injected as window.DEFAULT_URL
-const initialUrl = (typeof window !== 'undefined' && window.DEFAULT_URL) ? window.DEFAULT_URL : '';
+// Prefill URL from query param 'url', or fallback to environment variable injected as window.DEFAULT_URL
+const initialUrl = (() => {
+  if (typeof window === 'undefined') return '';
+  const params = new URLSearchParams(window.location.search);
+  const u = params.get('url');
+  if (u) {
+    return u;
+  }
+  return window.DEFAULT_URL || '';
+})();
 export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');

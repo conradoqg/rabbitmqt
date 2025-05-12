@@ -87,7 +87,8 @@ docker run -p 8080:8080 \
 - `CORS_ALLOW_ORIGIN`: Value for `Access-Control-Allow-Origin` header. Defaults to `*`.
 - `CORS_ALLOW_METHODS`: Value for `Access-Control-Allow-Methods` header. Defaults to `GET, POST, PUT, DELETE, PATCH, OPTIONS`.
 - `CORS_ALLOW_HEADERS`: Value for `Access-Control-Allow-Headers` header. Defaults to `Content-Type, Authorization`.
-- `CORS_EXPOSE_HEADERS`: Value for `Access-Control-Expose-Headers` header. Defaults to `*`.
+ - `CORS_EXPOSE_HEADERS`: Value for `Access-Control-Expose-Headers` header. Defaults to `*`.
+- `url` (query parameter): Default RabbitMQ Management API URL for the **Connection URL** input. If present in the browser URL (e.g., `?url=http://guest:guest@localhost:15672/api/`), it pre-fills that field and overrides the `DEFAULT_URL` environment variable.
 - Proxy restriction: only these RabbitMQ HTTP API paths are allowed; other proxy calls return HTTP 403 Forbidden:
   - `/api/overview`
   - `/api/vhosts`
