@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -19,6 +20,7 @@ var embeddedUI embed.FS
 const Version = "1.0.2"
 
 // proxyRawHandler handles path-based proxying: forwards any method, headers, body, and query to the target URL.
+
 func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -42,24 +44,13 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid proxy URL: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	// Only allow specific RabbitMQ HTTP API paths
-	allowedPrefixes := []string{
-		"/api/overview",
-		"/api/vhosts",
-		"/api/exchanges",
-		"/api/queues",
-		"/api/connections",
-		"/api/channels",
-	}
+
 	allowed := false
-	for _, pfx := range allowedPrefixes {
-		if strings.HasPrefix(parsedURL.Path, pfx) {
-			allowed = true
-			break
-		}
+	if isValidURL(parsedURL.Path) {
+		allowed = true
 	}
 	if !allowed {
-		http.Error(w, "Forbidden: only API paths under "+strings.Join(allowedPrefixes, ", ")+" are allowed", http.StatusForbidden)
+		http.Error(w, "Forbidden: path not allowed", http.StatusForbidden)
 		return
 	}
 	// Create proxied request with same method and body
@@ -166,4 +157,15 @@ func main() {
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func isValidURL(inputURL string) bool {
+	// Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
+	pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels)(/[^/]+)?$`
+
+	// Compile the regular expression
+	re := regexp.MustCompile(pattern)
+
+	// Check if the input URL matches the pattern
+	return re.MatchString(inputURL)
 }
