@@ -1,3 +1,5 @@
+// Package main provides a CLI tool for benchmarking RabbitMQ performance
+// by publishing and consuming messages with configurable parameters.
 package main
 
 import (
@@ -11,6 +13,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// main parses command-line flags, establishes AMQP connections, declares exchanges and queues,
+// runs concurrent producers and consumers, reports progress, and cleans up resources upon completion.
 func main() {
 	url := flag.String("url", "amqp://guest:guest@localhost:5672/", "AMQP connection URL")
 // Rate of messages per second for producers (0 for no throttling/unlimited)

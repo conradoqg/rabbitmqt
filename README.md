@@ -4,11 +4,12 @@ A lightweight HTTP proxy and web UI for RabbitMQ management, with built-in bench
 
 ## Table of Contents
 - [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-  - [Clone the Repository](#clone-the-repository)
-  - [Build from Source](#build-from-source)
-  - [Run with Docker](#run-with-docker)
+ - [Prerequisites](#prerequisites)
+ - [Quick Start](#quick-start)
+ - [Getting Started](#getting-started)
+   - [Clone the Repository](#clone-the-repository)
+   - [Build from Source](#build-from-source)
+   - [Run with Docker](#run-with-docker)
 - [Configuration](#configuration)
 - [RabbitMQ Setup (Optional)](#rabbitmq-setup-optional)
 - [Benchmarking Tool](#benchmarking-tool)
@@ -27,6 +28,24 @@ A lightweight HTTP proxy and web UI for RabbitMQ management, with built-in bench
 - Go 1.21+ (for building from source)
 - Docker (optional, for containerized deployment and testing)
 - Make (optional, for convenience targets)
+
+## Quick Start
+
+Run rabbitmqt in seconds using Docker or by building from source.
+
+### Docker
+```bash
+docker run -p 8080:8080 \
+  -e DEFAULT_URL="http://guest:guest@localhost:15672/api/" \
+  rabbitmqt
+```
+
+### From Source
+```bash
+make build-rabbitmqt
+export DEFAULT_URL="http://guest:guest@localhost:15672/api/"
+./output/rabbitmqt
+```
 
 ## Getting Started
 
@@ -136,15 +155,17 @@ go run main.go \
 ## Project Structure
 ```
 .
+├── cmd/rabbitmqt/            # Proxy server source code (Go)
+│   ├── main.go               # Entry point, HTTP server setup
+│   ├── middleware.go         # CORS and logging middleware
+│   └── ui/                   # Static web UI assets (Preact, TailwindCSS)
+├── tools/                    # Utility programs and samples
+│   ├── api-samples/          # Sample JSON payloads for the RabbitMQ Management API
+│   └── rabbitmq-bench/       # RabbitMQ benchmarking tool (Go)
 ├── Dockerfile                # Multi-stage build for the proxy server
 ├── Makefile                  # Build, run, and benchmark targets
-├── rabbitmq.conf             # RabbitMQ broker configuration
-├── advanced.config           # Advanced RabbitMQ configurations
-├── cmd/rabbitmqt/            # Proxy server source code
-│   ├── main.go
-│   ├── middleware.go
-│   └── ui/                   # Static web UI assets (Preact, TailwindCSS)
-├── tools/rabbitmq-bench/     # RabbitMQ benchmarking tool (Go)
+├── rabbitmq.conf             # RabbitMQ broker configuration example
+├── advanced.config           # Advanced RabbitMQ configurations example
 └── output/                   # Compiled binaries (after `make build-rabbitmqt`)
 ```
 

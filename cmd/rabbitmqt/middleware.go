@@ -31,7 +31,8 @@ func (rl *responseLogger) Write(b []byte) (int, error) {
 	return n, err
 }
 
-// loggingMiddleware logs HTTP requests after they are handled.
+// loggingMiddleware wraps an HTTP handler to capture response status code and size,
+// then logs request details in a combined log format.
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rl := &responseLogger{ResponseWriter: w}
@@ -48,8 +49,8 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// corsMiddleware adds CORS headers and handles preflight requests.
-// CORS behavior can be configured via environment variables:
+// corsMiddleware wraps an HTTP handler to add configurable CORS headers
+// and handle preflight OPTIONS requests based on environment variables:
 // CORS_ALLOW_ORIGIN, CORS_ALLOW_METHODS, CORS_ALLOW_HEADERS, CORS_EXPOSE_HEADERS.
 func corsMiddleware(next http.Handler) http.Handler {
    // Load CORS configuration from env vars (defaults apply if unset).

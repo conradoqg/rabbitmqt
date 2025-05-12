@@ -1,3 +1,6 @@
+// Package main implements rabbitmqt, a lightweight HTTP proxy server for the RabbitMQ HTTP API
+// with embedded or local web UI for management. It supports CORS, request logging,
+// and path-based proxying with URL validation.
 package main
 
 import (
@@ -13,14 +16,16 @@ import (
 	"time"
 )
 
+// embeddedUI holds the static web UI assets when built into the binary.
 //go:embed ui
 var embeddedUI embed.FS
 
-// Application version
+// Version indicates the application version.
 const Version = "1.0.2"
 
-// proxyRawHandler handles path-based proxying: forwards any method, headers, body, and query to the target URL.
-
+// proxyRawHandler forwards incoming HTTP requests under /proxy/ to the RabbitMQ HTTP API,
+// preserving the HTTP method, headers, body, and query parameters.
+// It enforces allowed API paths and performs URL decoding fixes.
 func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -78,7 +83,20 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Invalid PROXY_TIMEOUT '%s', using default %v: %v", env, proxyTimeout, err)
 		}
 	}
-	client := &http.Client{Timeout: proxyTimeout}
+	// Create HTTP client that follows redirects automatically (up to 10 by default)
+	client := &http.Client{
+		Timeout: proxyTimeout,
+		// Follow redirects for all methods, preserving behavior similar to default
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				// Stop after 10 redirects
+				return http.ErrUseLastResponse
+			}
+			// Continue following redirect
+			return nil
+		},
+	}
+	// Perform the request, following redirects
 	resp, err := client.Do(proxReq)
 	if err != nil {
 		http.Error(w, "Upstream error: "+err.Error(), http.StatusBadGateway)
@@ -159,9 +177,12 @@ func main() {
 	}
 }
 
+// isValidURL returns true if the request path matches an allowed RabbitMQ HTTP API endpoint,
+// including overview, vhosts, exchanges, queues, connections, or channels,
+// optionally followed by additional path segments.
 func isValidURL(inputURL string) bool {
-	// Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
-	pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels)(/[^/]+)?$`
+   // Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
+   pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels)(/[^/]+)?$`
 
 	// Compile the regular expression
 	re := regexp.MustCompile(pattern)
