@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useRef } from 'preact/hooks';
-import { addToast, purgeQueue } from '../store.js';
+import { addToast, purgeQueue, fastMode } from '../store.js';
 import numberal from 'numeral';
 import dayjs from 'dayjs';
 
@@ -294,6 +294,16 @@ export function QueueStateCell({ value }) {
   };
 
   return html`<span class="status ${map[value] || 'status-error'}" title=${value}></span>`;
+}
+
+export function VhostStateCell({ value }) {
+  const map = {
+    running: 'status-success',
+    stopped: 'status-error',
+    nodedown: 'status-warning'
+  };
+
+  return html`<span> ${Object.entries(value).map(([node, state]) => html`<span class="status ${map[state] || 'status-error'}" title="${node}: ${state}"></span> `)}</span>`;
 }
 
 function GroupTable({ entries, cols, renderFn }) {

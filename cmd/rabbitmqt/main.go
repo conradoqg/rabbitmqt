@@ -16,7 +16,7 @@ import (
 var embeddedUI embed.FS
 
 // Application version
-const Version = "1.0.1"
+const Version = "1.0.2"
 
 // proxyRawHandler handles path-based proxying: forwards any method, headers, body, and query to the target URL.
 func proxyRawHandler(w http.ResponseWriter, r *http.Request) {

@@ -11,7 +11,7 @@ export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 
 // Navigation state
 export const activeTab = signal('overview');
@@ -60,19 +60,19 @@ const api = new ApiService({
   fastModeSignal: fastMode,
 });
 /** Proxy API requests via API service. */
-export const fetchProxy      = api.proxyFetch.bind(api);
+export const fetchProxy = api.proxyFetch.bind(api);
 /** API service instance for direct access */
-export const apiService      = api;
+export const apiService = api;
 /** Direct API methods bound to the service */
-export const fetchOverview   = api.fetchOverview.bind(api);
-export const fetchVhosts     = api.fetchVhosts.bind(api);
-export const fetchList       = api.fetchList.bind(api);
-export const fetchAll        = api.fetchAll.bind(api);
-export const fetchExchanges  = api.fetchExchanges.bind(api);
-export const fetchQueues     = api.fetchQueues.bind(api);
-export const fetchConnections= api.fetchConnections.bind(api);
-export const fetchChannels   = api.fetchChannels.bind(api);
-export const purgeQueue      = api.purgeQueue.bind(api);
+export const fetchOverview = api.fetchOverview.bind(api);
+export const fetchVhosts = api.fetchVhosts.bind(api);
+export const fetchList = api.fetchList.bind(api);
+export const fetchAll = api.fetchAll.bind(api);
+export const fetchExchanges = api.fetchExchanges.bind(api);
+export const fetchQueues = api.fetchQueues.bind(api);
+export const fetchConnections = api.fetchConnections.bind(api);
+export const fetchChannels = api.fetchChannels.bind(api);
+export const purgeQueue = api.purgeQueue.bind(api);
 
 
 /**

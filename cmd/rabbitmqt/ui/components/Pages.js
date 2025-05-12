@@ -24,7 +24,8 @@ import {
   PeerCell,
   ConnectionStateCell,
   ChannelCell,
-  ExpandedRecordCell
+  ExpandedRecordCell,
+  VhostStateCell
 } from './Cells.js';
 // Overview page moved into Pages.js
 import { overview, fetchData, fastMode } from '../store.js';
@@ -50,26 +51,6 @@ export function Overview() {
       </div>
       ${error.value && html`<div class="alert alert-error mb-4">${error.value}</div>`}
       ${!loading.value && !error.value && data && html`
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div class="space-y-1">
-            <strong>Product</strong>
-            <p>${data.product_name} ${data.product_version}</p>
-            <strong>Cluster</strong>
-            <p>${data.cluster_name}</p>
-          </div>
-          <div class="space-y-1">
-            <strong>Node</strong>
-            <p>${data.node}</p>
-            <strong>Erlang</strong>
-            <p>${data.erlang_version}</p>
-          </div>
-          <div class="space-y-1">
-            <strong>Management Version</strong>
-            <p>${data.management_version}</p>
-            <strong>Rates Mode</strong>
-            <p>${data.rates_mode}</p>
-          </div>
-        </div>
         <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4 mb-4">
           <div class="stats stats-vertical lg:stats-horizontal shadow">
             ${Object.entries(data.object_totals || {}).map(([key, val]) => html`
@@ -204,29 +185,35 @@ export function Overview() {
 
 // Columns metadata for the Vhosts table (matches vhosts.json), organized into groups
 const vhostsColumns = [
-  // General settings
   { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
   { group: 'General', field: 'description', shortName: 'Description' },
   { group: 'General', field: 'default_queue_type', shortName: 'Default QType' },
-  { group: 'General', field: 'tracing', shortName: 'Tracing', render: val => val ? '✔' : '' },
-  // Cluster information
-  { group: 'Cluster', field: 'cluster_state', shortName: 'Cluster State', component: RecordCell },
-  // Metadata
-  { group: 'Metadata', field: 'metadata.description', shortName: 'Meta Desc' },
-  { group: 'Metadata', field: 'metadata.tags', shortName: 'Meta Tags', component: ArrayCell },
+  { group: 'General', field: 'tracing', shortName: 'Tracing' },
+  { group: 'Cluster', field: 'cluster_state', shortName: 'State', component: VhostStateCell },
+  { group: 'Metadata', field: 'metadata.description', shortName: 'Desc' },
+  { group: 'Metadata', field: 'metadata.tags', shortName: 'Tags', component: ArrayCell },
   { group: 'Metadata', field: 'tags', shortName: 'Tags', component: ArrayCell },
-  // Message stats
-  { group: 'Stats', field: 'messages', shortName: 'Messages', render: NumberRender },
-  { group: 'Stats', field: 'messages_details.rate', shortName: 'Msg/s', render: RateRender },
-  { group: 'Stats', field: 'messages_ready', shortName: 'Ready', render: NumberRender },
-  { group: 'Stats', field: 'messages_ready_details.rate', shortName: 'Ready/s', render: RateRender },
-  { group: 'Stats', field: 'messages_unacknowledged', shortName: 'Unacked', render: NumberRender },
-  { group: 'Stats', field: 'messages_unacknowledged_details.rate', shortName: 'Unacked/s', render: RateRender },
-  // Traffic details (when available)
-  { group: 'Traffic', field: 'recv_oct', shortName: 'Recv Bytes', render: ByteRender },
-  { group: 'Traffic', field: 'recv_oct_details.rate', shortName: 'Recv/s', render: RateRender },
-  { group: 'Traffic', field: 'send_oct', shortName: 'Send Bytes', render: ByteRender },
-  { group: 'Traffic', field: 'send_oct_details.rate', shortName: 'Send/s', render: RateRender },
+  { group: 'Message Rate', field: 'message_stats', shortName: 'Stats', displayName: 'Message Rate Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupQueueMessageRateCell },
+  { group: 'Message Rate', field: 'message_stats.publish_details.rate', shortName: 'Publish', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.ack_details.rate', shortName: 'Ack', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.redeliver_details.rate', shortName: 'Redeliver', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_details.rate', shortName: 'Deliver', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_get_details.rate', shortName: 'Deliver Get', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.deliver_no_ack_details.rate', shortName: 'Deliver No Ack', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_details.rate', shortName: 'Get Ack', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_empty_details.rate', shortName: 'Get Empty Ack', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Message Rate', field: 'message_stats.get_no_ack_details.rate', shortName: 'Get No Ack', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Messages', field: 'messages_stats', shortName: 'Stats', displayName: 'Messages Stats', sortable: false, statsOf: true, component: GroupMessagesCell },
+  { group: 'Messages', field: 'messages', shortName: 'Total', displayName: 'Total', detailOf: true, render: NumberRender },
+  { group: 'Messages', field: 'messages_ready', shortName: 'Ready', hideInFastMode: true, detailOf: true, render: NumberRender },
+  { group: 'Messages', field: 'messages_unacknowledged', shortName: 'Unacked', hideInFastMode: true, detailOf: true, render: NumberRender },
+  { group: 'Traffic Bytes', field: 'bytes_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupTrafficBytesCell },
+  { group: 'Traffic Bytes', field: 'recv_oct', shortName: 'Recv Bytes', hideInFastMode: true, detailOf: true, render: ByteRender },
+  { group: 'Traffic Bytes', field: 'send_oct', shortName: 'Send Bytes', hideInFastMode: true, detailOf: true, render: ByteRender },
+  { group: 'Traffic Rate', field: 'rate_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupTrafficRateCell },
+  { group: 'Traffic Rate', field: 'recv_oct_details.rate', shortName: 'Recv Rate', hideInFastMode: true, detailOf: true, render: RateRender },
+  { group: 'Traffic Rate', field: 'send_oct_details.rate', shortName: 'Send Rate', hideInFastMode: true, detailOf: true, render: RateRender },
+
 ];
 // Vhosts list page
 export function Vhosts() {
@@ -237,6 +224,8 @@ export function Vhosts() {
       clientSide
       pagination=${false}
       columns=${vhostsColumns}
+      defaultSortDir="desc"
+      defaultSortField=${fastMode.value ? "messages" : "message_stats.deliver_details.rate"}
     />`;
 }
 // Connections list page
@@ -263,13 +252,13 @@ const connectionsColumns = [
   { group: 'Traffic Count', field: 'cnt_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupTrafficCountCell },
   { group: 'Traffic Count', field: 'recv_cnt', shortName: 'Recv Count', hideInFastMode: true, detailOf: true, render: NumberRender },
   { group: 'Traffic Count', field: 'send_cnt', shortName: 'Send Count', hideInFastMode: true, detailOf: true, render: NumberRender },
-  { group: 'Traffic Bytes', field: 'bytes_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupTrafficBytesCell },
-  { group: 'Traffic Bytes', field: 'recv_oct', shortName: 'Recv Bytes', hideInFastMode: true, detailOf: true, render: ByteRender },
-  { group: 'Traffic Bytes', field: 'send_oct', shortName: 'Send Bytes', hideInFastMode: true, detailOf: true, render: ByteRender },
+  { group: 'Traffic Count', field: 'send_pend', shortName: 'Pending', displayName: 'Send Pending', hideInFastMode: true, render: NumberRender },
   { group: 'Traffic Rate', field: 'rate_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupTrafficRateCell },
   { group: 'Traffic Rate', field: 'recv_oct_details.rate', shortName: 'Recv Rate', hideInFastMode: true, detailOf: true, render: RateRender },
   { group: 'Traffic Rate', field: 'send_oct_details.rate', shortName: 'Send Rate', hideInFastMode: true, detailOf: true, render: RateRender },
-  { group: 'Traffic', field: 'send_pend', shortName: 'Pending', displayName: 'Send Pending', hideInFastMode: true, render: NumberRender },
+  { group: 'Traffic Bytes', field: 'bytes_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupTrafficBytesCell },
+  { group: 'Traffic Bytes', field: 'recv_oct', shortName: 'Recv Bytes', hideInFastMode: true, detailOf: true, render: ByteRender },
+  { group: 'Traffic Bytes', field: 'send_oct', shortName: 'Send Bytes', hideInFastMode: true, detailOf: true, render: ByteRender },
   { group: 'Reductions', field: 'reductions', shortName: '∑', displayName: 'Total', hideInFastMode: true, render: NumberRender },
   { group: 'Reductions', field: 'reductions_details.rate', shortName: 'Rate', displayName: 'Reductions Rate', hideInFastMode: true, render: RateRender },
   { group: 'Security', field: 'ssl', shortName: 'SSL', hideInFastMode: true },
@@ -392,7 +381,7 @@ const queuesColumns = [
   { group: 'Message Rate', field: 'message_stats.get_empty_details.rate', shortName: 'Get Empty Ack', hideInFastMode: true, detailOf: true, render: RateRender },
   { group: 'Message Rate', field: 'message_stats.get_no_ack_details.rate', shortName: 'Get No Ack', hideInFastMode: true, detailOf: true, render: RateRender },
   { group: 'Messages', field: 'messages_stats', shortName: 'Stats', displayName: 'Messages Stats', sortable: false, statsOf: true, component: GroupMessagesCell },
-  { group: 'Messages', field: 'messages', shortName: 'Messages', displayName: 'Total', detailOf: true, render: NumberRender },
+  { group: 'Messages', field: 'messages', shortName: 'Total', displayName: 'Total', detailOf: true, render: NumberRender },
   { group: 'Messages', field: 'messages_paged_out', shortName: 'Paged Out', hideInFastMode: true, detailOf: true, render: NumberRender },
   { group: 'Messages', field: 'messages_persistent', shortName: 'Persistent', hideInFastMode: true, detailOf: true, render: NumberRender },
   { group: 'Messages', field: 'messages_ram', shortName: 'RAM', hideInFastMode: true, detailOf: true, render: NumberRender },
