@@ -4,6 +4,10 @@ import { useEffect } from 'preact/hooks';
 import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION, vhosts, selectedVhost } from '../store.js';
 
 // Navigation bar component with connection inputs and controls
+/**
+ * NavBar component: renders the top navigation bar with connection inputs,
+ * fast mode toggle, and Connect button.
+ */
 export function NavBar() {
   return html`
     <nav class="navbar bg-base-100 shadow px-4">
@@ -93,6 +97,10 @@ export function NavBar() {
 }
 
 // Tabs for navigating between different management views
+/**
+ * Tabs component: renders tab navigation for different management views
+ * and virtual host selector with deep-linking support.
+ */
 export function Tabs() {
   const tabs = [
     'overview',
@@ -142,6 +150,9 @@ export function Tabs() {
 }
 
 // Toasts container for transient notifications
+/**
+ * Toasts component: displays transient toast notifications at the top-right corner.
+ */
 export function Toasts() {
   return html`
     <div class="fixed top-4 right-4 flex flex-col gap-2 z-50">

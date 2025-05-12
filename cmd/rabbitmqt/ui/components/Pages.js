@@ -1,3 +1,10 @@
+/**
+ * Pages.js - UI page components for RabbitMQT.
+ *
+ * Exports components for each management view: Overview, Vhosts, Exchanges, Queues,
+ * Connections, Channels, Policies, and Limits. Each component handles data fetching
+ * and rendering using GenericList or custom layouts.
+ */
 import { html } from 'htm/preact';
 import GenericList from './GenericList.js';
 import {
@@ -30,6 +37,12 @@ import {
 // Overview page moved into Pages.js
 import { overview, fetchData, fastMode } from '../store.js';
 
+/**
+ * Overview component: displays summary statistics, general info, and message metrics
+ * from the `/api/overview` endpoint.
+ *
+ * Allows refreshing data and shows loading/error states.
+ */
 export function Overview() {
   const { loading, error } = overview;
   const data = overview.data.value;
@@ -216,6 +229,10 @@ const vhostsColumns = [
 
 ];
 // Vhosts list page
+/**
+ * Vhosts component: renders a paginated, sortable, and searchable list of virtual hosts.
+ * Utilizes GenericList with specific column definitions.
+ */
 export function Vhosts() {
   return html`
     <${GenericList}
@@ -275,6 +292,10 @@ const connectionsColumns = [
   { group: 'Audit', field: 'user_who_performed_action', shortName: 'User Who Performed Action', visible: false, hideInFastMode: true, component: NameCell, width: 'max-w-[150px]' },
 ];
 
+/**
+ * Connections component: renders active connections with pagination and custom columns.
+ * Uses GenericList bound to the 'connections' route.
+ */
 export function Connections() {
   return html`
     <${GenericList}
@@ -322,6 +343,10 @@ const channelsColumns = [
   { group: 'Audit', field: 'user_who_performed_action', shortName: 'User Who Performed Action', visible: false, component: NameCell },
 ];
 
+/**
+ * Channels component: displays active channels, optionally disabled in fast mode.
+ * Configured via GenericList for the 'channels' route.
+ */
 export function Channels() {
   return html`
     <${GenericList}
@@ -349,6 +374,10 @@ const exchangesColumns = [
   { group: 'Audit', field: 'user_who_performed_action', shortName: 'User Who Performed Action', visible: false, component: NameCell, width: 'max-w-[150px]' },
 ];
 
+/**
+ * Exchanges component: renders a list of exchanges with pagination, sorting, and filters.
+ * Uses GenericList configured for the 'exchanges' route.
+ */
 export function Exchanges() {
   return html`
     <${GenericList}
@@ -417,6 +446,10 @@ const queuesColumns = [
   { group: 'Actions', field: 'purge', shortName: 'Purge', component: ConfirmQueueCell },
 ];
 
+/**
+ * Queues component: renders a list of queues, including controls for purging and display options.
+ * Uses GenericList for fetching and rendering `/api/queues`.
+ */
 export function Queues() {
   return html`
     <${GenericList}
@@ -437,6 +470,10 @@ const policiesColumns = [
   { group: 'General', field: 'priority', shortName: 'Priority', render: NumberRender },
   { group: 'Definition', field: 'definition', shortName: 'Definition', component: ExpandedRecordCell },
 ];
+/**
+ * Policies component: shows broker policies across vhosts, using client-side filtering.
+ * Leverages GenericList with `clientSide=true` for local search.
+ */
 export function Policies() {
   return html`
     <${GenericList}
@@ -455,6 +492,10 @@ const limitsColumns = [
   { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
   { group: 'Limits', field: 'value', shortName: 'Limits', component: ExpandedRecordCell },
 ];
+/**
+ * Limits component: displays vhost-specific limits (memory, connections, etc.).
+ * Uses GenericList with client-side data and custom naming.
+ */
 export function Limits() {
   return html`
     <${GenericList}

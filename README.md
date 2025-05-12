@@ -155,10 +155,15 @@ go run main.go \
 ## Project Structure
 ```
 .
-├── cmd/rabbitmqt/            # Proxy server source code (Go)
+├── cmd/rabbitmqt/            # Proxy server source code (Go) and web UI assets
 │   ├── main.go               # Entry point, HTTP server setup
 │   ├── middleware.go         # CORS and logging middleware
-│   └── ui/                   # Static web UI assets (Preact, TailwindCSS)
+│   └── ui/                   # Static web UI assets (Preact, HTM, TailwindCSS, DaisyUI)
+│       ├── index.html        # Main HTML with import map and default URL injection
+│       ├── App.js            # Root Preact component rendering layout and pages
+│       ├── api.js            # API service for RabbitMQ HTTP API proxy calls
+│       ├── store.js          # Application state store with Preact signals
+│       └── components/       # UI components (layout, lists, cells, pages)
 ├── tools/                    # Utility programs and samples
 │   ├── api-samples/          # Sample JSON payloads for the RabbitMQ Management API
 │   └── rabbitmq-bench/       # RabbitMQ benchmarking tool (Go)

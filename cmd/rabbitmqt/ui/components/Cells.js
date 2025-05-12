@@ -1,3 +1,9 @@
+/**
+ * Cells.js - Table cell renderer components and helper functions for RabbitMQT UI.
+ *
+ * Defines HTM/Preact components and utility functions to render cell content in tables,
+ * including numeric formatting, date/time rendering, status badges, grouped stats, and actionable cells.
+ */
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useRef } from 'preact/hooks';

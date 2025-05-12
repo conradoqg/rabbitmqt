@@ -1,8 +1,10 @@
-import { signal, batch } from '@preact/signals';
-
 /**
- * UI Store: state signals and actions for RabbitMQ Management UI
+ * store.js - Application state store for RabbitMQT UI using Preact signals.
+ *
+ * Defines reactive signals for connection URL, credentials, navigation, UI settings (fast mode, theme),
+ * and data stores (overview, lists). Exports actions to interact with the API and update state.
  */
+import { signal, batch } from '@preact/signals';
 
 // Authentication state
 // Prefill URL from query param 'url', or fallback to environment variable injected as window.DEFAULT_URL
@@ -84,8 +86,14 @@ export const purgeQueue = api.purgeQueue.bind(api);
 
 
 /**
- * Fetch overview data and list of virtual hosts.
- * Resets previous overview data and updates vhosts list.
+ * fetchData - Asynchronously fetches overview data and virtual hosts list from the API.
+ *
+ * Requires `url` and `username` signals to be non-empty, otherwise sets an error.
+ * Updates signals: `overview.loading`, `overview.error`, `overview.data`, and `vhosts`.
+ * Temporarily enables fast mode when fetching vhosts for performance.
+ *
+ * @async
+ * @returns {Promise<void>}
  */
 export async function fetchData() {
   if (!url.value || !username.value) {
@@ -120,8 +128,10 @@ export async function fetchData() {
 }
 
 /**
- * Change the active UI tab and update the URL for deep-linking.
- * @param {string} tab
+ * changeTab - Switches the active UI tab and synchronizes the `tab` and `vhost`
+ * URL parameters for deep-linking and browser navigation.
+ *
+ * @param {string} tab - Identifier of the tab to activate (e.g., 'overview', 'queues').
  */
 export function changeTab(tab) {
   // Update browser URL search params for deep-linking

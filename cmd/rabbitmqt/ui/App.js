@@ -3,6 +3,11 @@ import { activeTab, theme, toggleTheme, fastMode } from './store.js';
 import { NavBar, Tabs, Toasts } from './components/Layout.js';
 import { Overview, Vhosts, Exchanges, Queues, Connections, Channels, Policies, Limits } from './components/Pages.js';
 
+/**
+ * App component: root of the RabbitMQT UI.
+ * Renders toast notifications, navigation bar, tabs, and page views based on the activeTab state.
+ * Utilizes Preact and HTM for component rendering.
+ */
 export default function App() {
   return html`
   <div class="flex flex-col min-h-screen">

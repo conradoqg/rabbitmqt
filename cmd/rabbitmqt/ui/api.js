@@ -1,5 +1,12 @@
 /**
- * API Service: handles HTTP calls to RabbitMQ Management API via proxy.
+ * api.js - API Service for RabbitMQT UI.
+ *
+ * Provides methods to proxy HTTP requests from the web UI to the RabbitMQ Management HTTP API.
+ * Supports GET and generic requests, authentication via Basic Auth, fast mode parameters,
+ * list fetching with pagination, and convenience methods (e.g., purging queues, fetching resources).
+ *
+ * @example
+ * const api = new ApiService({ urlSignal, usernameSignal, passwordSignal, fastModeSignal });
  */
 export default class ApiService {
   /**

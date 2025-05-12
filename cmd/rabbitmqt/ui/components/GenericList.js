@@ -3,6 +3,23 @@ import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { vhosts, url, username, fetchList as apiFetchList, fetchAll as apiFetchAll, PAGE_SIZE, activeTab, addToast, fastMode, selectedVhost } from '../store.js';
 // Inline Pagination component
+/**
+ * Pagination component: renders pagination controls including:
+ * - Previous/Next buttons
+ * - Page number links with ellipses
+ * - Items per page selector
+ * - Jump-to-page input
+ *
+ * @param {Object} props
+ * @param {number} props.page - Current page number.
+ * @param {number} props.totalPages - Total number of pages.
+ * @param {Function} props.prevPage - Callback for previous page.
+ * @param {Function} props.nextPage - Callback for next page.
+ * @param {Function} props.goPage - Callback to navigate to a specific page.
+ * @param {number} props.itemsPerPage - Number of items per page.
+ * @param {Function} props.onChangeItemsPerPage - Callback when items per page changes.
+ * @param {boolean} [props.disabled=false] - Whether controls are disabled.
+ */
 function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage, onChangeItemsPerPage, disabled = false }) {
   const jumpPage = useSignal(String(page));
 
@@ -94,6 +111,18 @@ function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage
   `;
 }
 
+/**
+ * GenericList component: renders a paginated, sortable, and searchable list of RabbitMQ resources.
+ *
+ * @param {Object} props
+ * @param {string} props.title - Display title for the resource list.
+ * @param {string} props.route - Resource route identifier (e.g., 'queues').
+ * @param {Array<Object>} [props.columns] - Column metadata for table rendering.
+ * @param {string} [props.defaultSortField='name'] - Default field to sort by.
+ * @param {'asc'|'desc'} [props.defaultSortDir='asc'] - Default sort direction.
+ * @param {boolean} [props.clientSide=false] - Whether to perform client-side filtering and pagination.
+ * @param {boolean} [props.pagination=true] - Whether to display pagination controls.
+ */
 export default function GenericList({
   title,
   route,
