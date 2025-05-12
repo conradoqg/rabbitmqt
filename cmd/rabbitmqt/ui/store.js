@@ -24,6 +24,7 @@ export const theme = signal('light');
 // Note: policies and limits tabs use client-side search and require X-Vhost header
 const ALLOWED_TABS = [
   'overview',
+  'vhosts',
   'connections',
   'channels',
   'exchanges',

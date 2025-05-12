@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { activeTab, theme, toggleTheme, fastMode } from './store.js';
 import { NavBar, Tabs, Toasts } from './components/Layout.js';
-import { Overview, Exchanges, Queues, Connections, Channels, Policies, Limits } from './components/Pages.js';
+import { Overview, Vhosts, Exchanges, Queues, Connections, Channels, Policies, Limits } from './components/Pages.js';
 
 export default function App() {
   return html`
@@ -15,6 +15,7 @@ export default function App() {
 
           <div class="m-4">
             <div hidden=${activeTab.value !== 'overview'}><${Overview}/></div>
+            <div hidden=${activeTab.value !== 'vhosts'}><${Vhosts}/></div>
             <div hidden=${activeTab.value !== 'connections'}><${Connections}/></div>
             <div hidden=${activeTab.value !== 'channels'}>${!fastMode.value ? html`<${Channels}/>` : 'Not available in fast mode'}</div>
             <div hidden=${activeTab.value !== 'exchanges'}><${Exchanges}/></div>

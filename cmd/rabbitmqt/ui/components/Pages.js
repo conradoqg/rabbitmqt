@@ -202,6 +202,43 @@ export function Overview() {
   `;
 }
 
+// Columns metadata for the Vhosts table (matches vhosts.json), organized into groups
+const vhostsColumns = [
+  // General settings
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
+  { group: 'General', field: 'description', shortName: 'Description' },
+  { group: 'General', field: 'default_queue_type', shortName: 'Default QType' },
+  { group: 'General', field: 'tracing', shortName: 'Tracing', render: val => val ? '✔' : '' },
+  // Cluster information
+  { group: 'Cluster', field: 'cluster_state', shortName: 'Cluster State', component: RecordCell },
+  // Metadata
+  { group: 'Metadata', field: 'metadata.description', shortName: 'Meta Desc' },
+  { group: 'Metadata', field: 'metadata.tags', shortName: 'Meta Tags', component: ArrayCell },
+  { group: 'Metadata', field: 'tags', shortName: 'Tags', component: ArrayCell },
+  // Message stats
+  { group: 'Stats', field: 'messages', shortName: 'Messages', render: NumberRender },
+  { group: 'Stats', field: 'messages_details.rate', shortName: 'Msg/s', render: RateRender },
+  { group: 'Stats', field: 'messages_ready', shortName: 'Ready', render: NumberRender },
+  { group: 'Stats', field: 'messages_ready_details.rate', shortName: 'Ready/s', render: RateRender },
+  { group: 'Stats', field: 'messages_unacknowledged', shortName: 'Unacked', render: NumberRender },
+  { group: 'Stats', field: 'messages_unacknowledged_details.rate', shortName: 'Unacked/s', render: RateRender },
+  // Traffic details (when available)
+  { group: 'Traffic', field: 'recv_oct', shortName: 'Recv Bytes', render: ByteRender },
+  { group: 'Traffic', field: 'recv_oct_details.rate', shortName: 'Recv/s', render: RateRender },
+  { group: 'Traffic', field: 'send_oct', shortName: 'Send Bytes', render: ByteRender },
+  { group: 'Traffic', field: 'send_oct_details.rate', shortName: 'Send/s', render: RateRender },
+];
+// Vhosts list page
+export function Vhosts() {
+  return html`
+    <${GenericList}
+      title="Vhosts"
+      route="vhosts"
+      clientSide
+      pagination=${false}
+      columns=${vhostsColumns}
+    />`;
+}
 // Connections list page
 const connectionsColumns = [
   { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },

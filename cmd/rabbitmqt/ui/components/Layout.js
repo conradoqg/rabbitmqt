@@ -96,6 +96,7 @@ export function NavBar() {
 export function Tabs() {
   const tabs = [
     'overview',
+    'vhosts',
     'connections',
     'channels',
     'exchanges',

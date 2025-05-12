@@ -204,26 +204,33 @@ export default function GenericList({
       const encodedVhost = vh === '/' ? '%252F' : encodeURIComponent(vh);
       let basePath;
       const extraHeaders = {};
-      // Determine API base path and headers. Some endpoints use X-Vhost header instead of vhost in path
-      let apiRoute = route;
-      // Map UI route 'limits' to the API endpoint 'vhost-limits'
-      if (route === 'limits') apiRoute = 'vhost-limits';
-      // Endpoints using X-Vhost header (no vhost in URL)
-      if (
-        apiRoute === 'connections' ||
-        apiRoute === 'channels' ||
-        apiRoute === 'policies' ||
-        apiRoute === 'vhost-limits'
-      ) {
-        basePath = `/api/${apiRoute}`;
-        if (vh !== 'all') {
-          extraHeaders['X-Vhost'] = vh;
-        }
-      } else {
-        // Other resources: include vhost in path
+      // vhosts tab: fetch either all vhosts or a single vhost by name
+      if (route === 'vhosts') {
         basePath = vh === 'all'
-          ? `/api/${route}`
-          : `/api/${route}/${encodedVhost}`;
+          ? '/api/vhosts'
+          : `/api/vhosts/${encodedVhost}`;
+      } else {
+        // Determine API base path and headers for other routes.
+        let apiRoute = route;
+        // Map UI route 'limits' to the API endpoint 'vhost-limits'
+        if (route === 'limits') apiRoute = 'vhost-limits';
+        // Endpoints using X-Vhost header (no vhost in URL)
+        if (
+          apiRoute === 'connections' ||
+          apiRoute === 'channels' ||
+          apiRoute === 'policies' ||
+          apiRoute === 'vhost-limits'
+        ) {
+          basePath = `/api/${apiRoute}`;
+          if (vh !== 'all') {
+            extraHeaders['X-Vhost'] = vh;
+          }
+        } else {
+          // Other resources: include vhost in path
+          basePath = vh === 'all'
+            ? `/api/${route}`
+            : `/api/${route}/${encodedVhost}`;
+        }
       }
       if (!clientSide) {
         // Server-side fetch: pagination, sort, and search performed on server
@@ -271,10 +278,15 @@ export default function GenericList({
         // Client-side fetch: retrieve full data and apply filter, sort, and pagination locally
         const res = await fetchProxy(basePath, extraHeaders);
         const jsonData = await res.json();
-        // Extract items array (API may return array or object with items)
-        let allItems = Array.isArray(jsonData)
-          ? jsonData
-          : (jsonData.items || []);
+        // Extract items array; wrap single object into array for vhosts endpoint
+        let allItems;
+        if (Array.isArray(jsonData)) {
+          allItems = jsonData;
+        } else if (route === 'vhosts') {
+          allItems = [jsonData];
+        } else {
+          allItems = jsonData.items || [];
+        }
         // For limits endpoint, use vhost as the name property for client-side search
         if (route === 'limits') {
           allItems = allItems.map(item => ({ ...item, name: item.vhost }));
