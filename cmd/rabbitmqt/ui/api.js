@@ -180,4 +180,45 @@ export default class ApiService {
     const res = await this.proxyFetch('/api/vhosts');
     return res.json();
   }
+  /**
+   * Fetch full list of resource items (no pagination), for client-side processing.
+   * @param {string} route - Resource endpoint (e.g., 'queues', 'limits').
+   * @param {Object} [opts] - Options including vhost filter.
+   * @param {string} opts.vhost - Virtual host filter.
+   * @returns {Promise<any[]>} Array of items.
+   */
+  async fetchAll(route, { vhost = 'all' } = {}) {
+    let apiRoute = route;
+    if (route === 'limits') apiRoute = 'vhost-limits';
+    const extraHeaders = {};
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    let path;
+    if (route === 'vhosts') {
+      path = vhost === 'all' ? '/api/vhosts' : `/api/vhosts/${encVh}`;
+    } else if (
+      apiRoute === 'connections' ||
+      apiRoute === 'channels' ||
+      apiRoute === 'policies' ||
+      apiRoute === 'vhost-limits'
+    ) {
+      path = `/api/${apiRoute}`;
+      if (vhost !== 'all') extraHeaders['X-Vhost'] = vhost;
+    } else {
+      path = vhost === 'all' ? `/api/${route}` : `/api/${route}/${encVh}`;
+    }
+    const res = await this.proxyFetch(path, extraHeaders);
+    const jsonData = await res.json();
+    // Extract items array; wrap single object into array for vhosts endpoint
+    let items;
+    if (route === 'vhosts') {
+      items = Array.isArray(jsonData) ? jsonData : [jsonData];
+    } else {
+      items = Array.isArray(jsonData) ? jsonData : (jsonData.items || []);
+    }
+    // For limits endpoint, use vhost as the name property for client-side search
+    if (route === 'limits') {
+      items = items.map(item => ({ ...item, name: item.vhost }));
+    }
+    return items;
+  }
 }

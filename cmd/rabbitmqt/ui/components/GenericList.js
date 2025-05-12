@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { vhosts, url, username, fetchProxy, PAGE_SIZE, activeTab, addToast, fastMode, selectedVhost } from '../store.js';
+import { vhosts, url, username, fetchList as apiFetchList, fetchAll as apiFetchAll, PAGE_SIZE, activeTab, addToast, fastMode, selectedVhost } from '../store.js';
 // Inline Pagination component
 function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage, onChangeItemsPerPage, disabled = false }) {
   const jumpPage = useSignal(String(page));
@@ -201,48 +201,17 @@ export default function GenericList({
     error.value = null;
     try {
       const vh = selectedVhost.value;
-      const encodedVhost = vh === '/' ? '%252F' : encodeURIComponent(vh);
-      let basePath;
-      const extraHeaders = {};
-      // vhosts tab: fetch either all vhosts or a single vhost by name
-      if (route === 'vhosts') {
-        basePath = vh === 'all'
-          ? '/api/vhosts'
-          : `/api/vhosts/${encodedVhost}`;
-      } else {
-        // Determine API base path and headers for other routes.
-        let apiRoute = route;
-        // Map UI route 'limits' to the API endpoint 'vhost-limits'
-        if (route === 'limits') apiRoute = 'vhost-limits';
-        // Endpoints using X-Vhost header (no vhost in URL)
-        if (
-          apiRoute === 'connections' ||
-          apiRoute === 'channels' ||
-          apiRoute === 'policies' ||
-          apiRoute === 'vhost-limits'
-        ) {
-          basePath = `/api/${apiRoute}`;
-          if (vh !== 'all') {
-            extraHeaders['X-Vhost'] = vh;
-          }
-        } else {
-          // Other resources: include vhost in path
-          basePath = vh === 'all'
-            ? `/api/${route}`
-            : `/api/${route}/${encodedVhost}`;
-        }
-      }
       if (!clientSide) {
-        // Server-side fetch: pagination, sort, and search performed on server
-        let params = `?page=${page.value}&page_size=${itemsPerPage.value}` +
-          `&sort=${sortField.value}` +
-          `&sort_reverse=${sortDir.value === 'desc'}`;
-        if (searchName.value) {
-          params += `&name=${encodeURIComponent(searchName.value)}`;
-        }
-        params += `&use_regex=${searchUseRegex.value}`;
-        const res = await fetchProxy(basePath + params, extraHeaders);
-        const json = await res.json();
+        // Server-side fetch via API service
+        const json = await apiFetchList(route, {
+          vhost: vh,
+          page: page.value,
+          pageSize: itemsPerPage.value,
+          sortField: sortField.value,
+          sortReverse: sortDir.value === 'desc',
+          searchName: searchName.value,
+          useRegex: searchUseRegex.value
+        });
         // Handle server-side page_out_of_range error: bounce to the last valid page
         if (json.error === 'page_out_of_range') {
           const reason = json.reason || '';
@@ -272,25 +241,11 @@ export default function GenericList({
         data.value = {
           items: json.items || [],
           totalPages: json.page_count,
-          page: json.page,
+          page: json.page
         };
       } else {
-        // Client-side fetch: retrieve full data and apply filter, sort, and pagination locally
-        const res = await fetchProxy(basePath, extraHeaders);
-        const jsonData = await res.json();
-        // Extract items array; wrap single object into array for vhosts endpoint
-        let allItems;
-        if (Array.isArray(jsonData)) {
-          allItems = jsonData;
-        } else if (route === 'vhosts') {
-          allItems = [jsonData];
-        } else {
-          allItems = jsonData.items || [];
-        }
-        // For limits endpoint, use vhost as the name property for client-side search
-        if (route === 'limits') {
-          allItems = allItems.map(item => ({ ...item, name: item.vhost }));
-        }
+        // Client-side fetch via API service, then apply filter, sort, and pagination locally
+        let allItems = await apiFetchAll(route, { vhost: vh });
         // Apply search filter
         // Apply search filter across all string and number fields (recursive)
         let filtered = allItems;

@@ -67,6 +67,7 @@ export const apiService      = api;
 export const fetchOverview   = api.fetchOverview.bind(api);
 export const fetchVhosts     = api.fetchVhosts.bind(api);
 export const fetchList       = api.fetchList.bind(api);
+export const fetchAll        = api.fetchAll.bind(api);
 export const fetchExchanges  = api.fetchExchanges.bind(api);
 export const fetchQueues     = api.fetchQueues.bind(api);
 export const fetchConnections= api.fetchConnections.bind(api);
