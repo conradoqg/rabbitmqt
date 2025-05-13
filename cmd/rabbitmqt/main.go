@@ -178,11 +178,11 @@ func main() {
 }
 
 // isValidURL returns true if the request path matches an allowed RabbitMQ HTTP API endpoint,
-// including overview, vhosts, exchanges, queues, connections, or channels,
+// including overview, vhosts, exchanges, queues, connections, channels, policies, or vhost-limits,
 // optionally followed by additional path segments.
 func isValidURL(inputURL string) bool {
    // Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
-   pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels)(/[^/]+)?$`
+   pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels|policies|vhost-limits)(/[^/]+)?$`
 
 	// Compile the regular expression
 	re := regexp.MustCompile(pattern)
