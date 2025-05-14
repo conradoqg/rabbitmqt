@@ -21,7 +21,7 @@ export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
-export const VERSION = '1.0.3';
+export const VERSION = '1.0.4';
 
 // Navigation state
 export const activeTab = signal('overview');
@@ -54,6 +54,8 @@ export const overview = {
 export const vhosts = signal([]);
 // Global selected vhost for all views
 export const selectedVhost = signal('all');
+// Loading state for fetching vhosts (Connect button)
+export const vhostsLoading = signal(false);
 
 
 /**
@@ -91,18 +93,13 @@ export const purgeQueue = api.purgeQueue.bind(api);
  */
 export const getQueueMessages = api.getQueueMessages.bind(api);
 
-
 /**
- * fetchData - Asynchronously fetches overview data and virtual hosts list from the API.
- *
- * Requires `url` and `username` signals to be non-empty, otherwise sets an error.
- * Updates signals: `overview.loading`, `overview.error`, `overview.data`, and `vhosts`.
- * Temporarily enables fast mode when fetching vhosts for performance.
- *
+ * loadOverview - Fetches overview data from the API.
+ * Updates overview.loading, overview.error, and overview.data signals.
  * @async
  * @returns {Promise<void>}
  */
-export async function fetchData() {
+export async function loadOverview() {
   if (!url.value || !username.value) {
     overview.error.value = 'URL and username are required';
     return;
@@ -113,9 +110,38 @@ export async function fetchData() {
     overview.data.value = null;
   });
   try {
-    const overviewData = await fetchOverview();
-    overview.data.value = overviewData;
-    // Always use fast mode for fetching vhost names (only names needed)
+    const data = await fetchOverview();
+    overview.data.value = data;
+  } catch (e) {
+    overview.error.value = e.message;
+    addToast(e.message, 'error');
+  } finally {
+    overview.loading.value = false;
+  }
+}
+
+
+/**
+ * fetchData - Fetches virtual hosts list from the API (used by Connect).
+ *
+ * Requires `url` and `username` to be non-empty, otherwise sets an error.
+ * Updates signals: `vhostsLoading`, `overview.error`, and `vhosts`.
+ *
+ * @async
+ * @returns {Promise<void>}
+ */
+export async function fetchData() {
+  if (!url.value || !username.value) {
+    overview.error.value = 'URL and username are required';
+    return;
+  }
+  batch(() => {
+    vhostsLoading.value = true;
+    overview.error.value = null;
+    overview.data.value = null;
+  });
+  try {
+    // Always use fast mode for fetching vhost names first (only names needed)
     const prevFast = fastMode.value;
     fastMode.value = true;
     try {
@@ -127,10 +153,9 @@ export async function fetchData() {
     }
   } catch (e) {
     overview.error.value = e.message;
-    // Show error via toast
     addToast(e.message, 'error');
   } finally {
-    overview.loading.value = false;
+    vhostsLoading.value = false;
   }
 }
 

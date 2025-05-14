@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { url, username, password, fetchData, overview, fastMode, activeTab, changeTab, toasts, VERSION, vhosts, selectedVhost } from '../store.js';
+import { url, username, password, fetchData, vhostsLoading, fastMode, activeTab, changeTab, toasts, VERSION, vhosts, selectedVhost } from '../store.js';
 
 // Navigation bar component with connection inputs and controls
 /**
@@ -26,13 +26,13 @@ export function NavBar() {
             placeholder="URL"
             value=${url.value}
             onInput=${e => (url.value = e.target.value)}
-            disabled=${overview.loading.value}
+            disabled=${vhostsLoading.value}
           />
           <button
             type="button"
             class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-            onClick=${() => (url.value = '')}
-            disabled=${overview.loading.value}
+          onClick=${() => (url.value = '')}
+          disabled=${vhostsLoading.value}
           >
             <i class="mdi mdi-close"></i>
           </button>
@@ -45,13 +45,13 @@ export function NavBar() {
             placeholder="Username"
             value=${username.value}
             onInput=${e => (username.value = e.target.value)}
-            disabled=${overview.loading.value}
+            disabled=${vhostsLoading.value}
           />
           <button
             type="button"
             class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-            onClick=${() => (username.value = '')}
-            disabled=${overview.loading.value}
+          onClick=${() => (username.value = '')}
+          disabled=${vhostsLoading.value}
           >
             <i class="mdi mdi-close"></i>
           </button>
@@ -64,13 +64,13 @@ export function NavBar() {
             placeholder="Password"
             value=${password.value}
             onInput=${e => (password.value = e.target.value)}
-            disabled=${overview.loading.value}
+            disabled=${vhostsLoading.value}
           />
           <button
             type="button"
             class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-            onClick=${() => (password.value = '')}
-            disabled=${overview.loading.value}
+          onClick=${() => (password.value = '')}
+          disabled=${vhostsLoading.value}
           >
             <i class="mdi mdi-close"></i>
           </button>
@@ -80,16 +80,16 @@ export function NavBar() {
           type="button"
           title="Fast Mode (No Stats)"
           onClick=${() => (fastMode.value = !fastMode.value)}
-          disabled=${overview.loading.value}
+          disabled=${vhostsLoading.value}
         >
           <i class="mdi mdi-flash"></i>
         </button>
         <button
           class=${`btn btn-primary ml-2`}
-          disabled=${overview.loading.value}
+          disabled=${vhostsLoading.value}
           onClick=${fetchData}
         >
-          ${overview.loading.value ? html`<span class="loading loading-spinner"></span>` : 'Connect'}
+          ${vhostsLoading.value ? html`<span class="loading loading-spinner"></span>` : 'Connect'}
         </button>
       </div>
     </nav>

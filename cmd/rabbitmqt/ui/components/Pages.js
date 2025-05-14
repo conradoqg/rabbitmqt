@@ -36,7 +36,8 @@ import {
   VhostStateCell
 } from './Cells.js';
 // Overview page moved into Pages.js
-import { overview, fetchData, fastMode } from '../store.js';
+import { useEffect } from 'preact/hooks';
+import { overview, fastMode, loadOverview, activeTab, vhosts } from '../store.js';
 
 /**
  * Overview component: displays summary statistics, general info, and message metrics
@@ -53,13 +54,24 @@ export function Overview() {
     return acc;
   }, {});
   const nbsp = '\u00A0';
+  // Load overview once when Overview tab is activated and vhosts list is ready
+  useEffect(() => {
+    if (
+      activeTab.value === 'overview' &&
+      vhosts.value.length > 0 &&
+      !overview.data.value &&
+      !overview.loading.value
+    ) {
+      loadOverview();
+    }
+  }, [activeTab.value, vhosts.value]);
 
   return html`
     <div>
       <h1 class="text-2xl font-bold mb-4">Overview</h1>
       <div class="flex flex-wrap justify-between items-center mb-4">
       <div class="flex flex-wrap items-center gap-4"></div>
-        <button class="btn btn-primary" onClick=${fetchData} disabled=${loading.value}>
+        <button class="btn btn-primary" onClick=${loadOverview} disabled=${loading.value}>
           ${loading.value ? html`<span class="loading loading-spinner"></span>` : 'Refresh'}
         </button>
       </div>
