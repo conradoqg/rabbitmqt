@@ -21,7 +21,7 @@ export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
-export const VERSION = '1.0.2';
+export const VERSION = '1.0.3';
 
 // Navigation state
 export const activeTab = signal('overview');
@@ -83,6 +83,13 @@ export const fetchQueues = api.fetchQueues.bind(api);
 export const fetchConnections = api.fetchConnections.bind(api);
 export const fetchChannels = api.fetchChannels.bind(api);
 export const purgeQueue = api.purgeQueue.bind(api);
+/**
+ * Fetch messages from a queue.
+ * @param {string} vhost - Virtual host name.
+ * @param {string} queueName - Name of the queue.
+ * @param {Object} options - Options including count, ackmode, encoding.
+ */
+export const getQueueMessages = api.getQueueMessages.bind(api);
 
 
 /**

@@ -30,7 +30,8 @@ export default class ApiService {
    * @returns {Promise<Response>}
    */
   async proxyFetch(path, extraHeaders = {}) {
-    const base = this.urlSignal.value.replace(/\/$/, '');
+    // Normalize base URL: strip trailing slash and collapse multiple slashes after scheme to one (http:/ or https:/)
+    const base = this.urlSignal.value.replace(/\/$/, '').replace(/^(https?:)\/+/, '$1/');
     let fullPath = base + path;
     if (this.fastModeSignal.value && !path.startsWith('/api/channels')) {
       const fastParams = 'enable_queue_totals=true&disable_stats=true';
@@ -53,7 +54,7 @@ export default class ApiService {
     if (!res.ok) {
       if (res.status === 400) {
         let errJson = null;
-        try { errJson = await res.clone().json(); } catch (_) {}
+        try { errJson = await res.clone().json(); } catch (_) { }
         if (errJson && errJson.error === 'page_out_of_range') {
           return res;
         }
@@ -77,7 +78,8 @@ export default class ApiService {
    * @returns {Promise<Response>}
    */
   async request(method, path, extraHeaders = {}) {
-    const base = this.urlSignal.value.replace(/\/$/, '');
+    // Normalize base URL for proxy path
+    const base = this.urlSignal.value.replace(/\/$/, '').replace(/^(https?:)\/+/, '$1/');
     let fullPath = base + path;
     const prefix = typeof window !== 'undefined'
       ? window.location.pathname.replace(/\/$/, '')
@@ -116,6 +118,45 @@ export default class ApiService {
     const encName = encodeURIComponent(queueName);
     const endpoint = `/api/queues/${encVh}/${encName}/contents`;
     await this.request('DELETE', endpoint);
+  }
+  /**
+   * Fetch messages from a queue using RabbitMQ HTTP API.
+   * @param {string} vhost - Virtual host name.
+   * @param {string} queueName - Name of the queue.
+   * @param {Object} options - Message fetch options.
+   * @param {number} options.count - Number of messages to retrieve.
+   * @param {string} options.ackmode - Acknowledgment mode (e.g., 'ack_requeue_true', 'ack_requeue_false').
+   * @param {string} options.encoding - Payload encoding ('auto' or 'base64').
+   * @returns {Promise<any[]>} - Array of message objects.
+   */
+  async getQueueMessages(vhost, queueName, { count = 1, ackmode = 'ack_requeue_false', encoding = 'auto', truncate } = {}) {
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    const encName = encodeURIComponent(queueName);
+    const path = `/api/queues/${encVh}/${encName}/get`;
+    // Normalize base URL for proxy path
+    const base = this.urlSignal.value.replace(/\/$/, '').replace(/^(https?:)\/+/, '$1/');
+    const prefix = typeof window !== 'undefined' ? window.location.pathname.replace(/\/$/, '') : '';
+    const proxyUrl = `${prefix}/proxy/${base}${path}`;
+    const headers = {};
+    if (this.usernameSignal.value) {
+      headers['Authorization'] = 'Basic ' + btoa(
+        this.usernameSignal.value + ':' + this.passwordSignal.value
+      );
+    }
+    headers['Content-Type'] = 'application/json';
+    const body = JSON.stringify({ count, ackmode, encoding, truncate: truncate == 0 ? undefined : truncate });
+    const res = await fetch(proxyUrl, { method: 'POST', headers, body });
+    if (!res.ok) {
+      let errMsg;
+      try {
+        const errObj = await res.clone().json();
+        errMsg = errObj.reason || errObj.error || `${res.status} ${res.statusText}`;
+      } catch (_) {
+        errMsg = `${res.status} ${res.statusText}`;
+      }
+      throw new Error(errMsg);
+    }
+    return res.json();
   }
 
   /**
@@ -165,10 +206,10 @@ export default class ApiService {
   }
 
   /** Resource-specific fetch methods as convenience wrappers **/
-  fetchExchanges(opts)   { return this.fetchList('exchanges', opts); }
-  fetchQueues(opts)      { return this.fetchList('queues', opts); }
+  fetchExchanges(opts) { return this.fetchList('exchanges', opts); }
+  fetchQueues(opts) { return this.fetchList('queues', opts); }
   fetchConnections(opts) { return this.fetchList('connections', opts); }
-  fetchChannels(opts)    { return this.fetchList('channels', opts); }
+  fetchChannels(opts) { return this.fetchList('channels', opts); }
 
   /**
    * Fetch overview data from /api/overview.

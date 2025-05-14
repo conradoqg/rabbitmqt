@@ -16,6 +16,7 @@ import {
   GroupBytesCell,
   ArrayCell,
   ConfirmQueueCell,
+  GetMessageCell,
   TimestampRender,
   NumberRender,
   ByteRender,
@@ -443,6 +444,7 @@ const queuesColumns = [
   { group: 'Replication', field: 'recoverable_slaves', shortName: 'Recoverable', displayName: 'Recoverable Slaves', hideInFastMode: true, component: ArrayCell },
   { group: 'Replication', field: 'slave_nodes', shortName: 'Slaves', displayName: 'Slave Nodes', component: ArrayCell },
   { group: 'Replication', field: 'synchronised_slave_nodes', shortName: 'Synced', displayName: 'Synchronised Slave Nodes', component: ArrayCell },
+  { group: 'Actions', field: 'get', shortName: 'Get', component: GetMessageCell },
   { group: 'Actions', field: 'purge', shortName: 'Purge', component: ConfirmQueueCell },
 ];
 

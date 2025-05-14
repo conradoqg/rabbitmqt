@@ -17,11 +17,12 @@ import (
 )
 
 // embeddedUI holds the static web UI assets when built into the binary.
+
 //go:embed ui
 var embeddedUI embed.FS
 
 // Version indicates the application version.
-const Version = "1.0.2"
+const Version = "1.0.3"
 
 // proxyRawHandler forwards incoming HTTP requests under /proxy/ to the RabbitMQ HTTP API,
 // preserving the HTTP method, headers, body, and query parameters.
@@ -86,15 +87,6 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 	// Create HTTP client that follows redirects automatically (up to 10 by default)
 	client := &http.Client{
 		Timeout: proxyTimeout,
-		// Follow redirects for all methods, preserving behavior similar to default
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 10 {
-				// Stop after 10 redirects
-				return http.ErrUseLastResponse
-			}
-			// Continue following redirect
-			return nil
-		},
 	}
 	// Perform the request, following redirects
 	resp, err := client.Do(proxReq)
@@ -181,8 +173,8 @@ func main() {
 // including overview, vhosts, exchanges, queues, connections, channels, policies, or vhost-limits,
 // optionally followed by additional path segments.
 func isValidURL(inputURL string) bool {
-   // Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
-   pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels|policies|vhost-limits)(/[^/]+)?$`
+	// Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
+	pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels|policies|vhost-limits)(/.*)?`
 
 	// Compile the regular expression
 	re := regexp.MustCompile(pattern)

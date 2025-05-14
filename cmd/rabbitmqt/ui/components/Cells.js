@@ -7,7 +7,7 @@
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
 import { useRef } from 'preact/hooks';
-import { addToast, purgeQueue, fastMode } from '../store.js';
+import { addToast, purgeQueue, fastMode, apiService } from '../store.js';
 import numberal from 'numeral';
 import dayjs from 'dayjs';
 
@@ -59,7 +59,8 @@ export function ConfirmQueueCell({ item }) {
     <div class="modal">
       <div class="modal-box relative">
         <label for=${id} class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-        <h3 class="font-bold text-lg">Confirm Action</h3>
+        <h3 class="font-bold text-lg">Are you sure you want to purge all messages from the queue?</h3>
+        <p class="py-2"><b>ALL DATA WILL BE LOST!</b></p>
         <p class="py-2">Type the queue name to confirm:</p>
         <input
           type="text"
@@ -76,6 +77,135 @@ export function ConfirmQueueCell({ item }) {
     </div>
     <button class="btn btn-sm btn-warning" disabled=${isLoading.value} onClick=${() => { inputVal.value = ''; if (inputRef.current) inputRef.current.checked = true }}>
       ${isLoading.value ? html`<span class="loading loading-spinner"></span>` : html`<i class="mdi mdi-delete-sweep"></i>`}
+    </button>
+  `;
+}
+
+// Cell component to fetch and display messages from a queue
+export function GetMessageCell({ item }) {
+  const inputRef = useRef(null);
+  const isLoading = useSignal(false);
+  const ackMode = useSignal('ack_requeue_true');
+  const encoding = useSignal('auto');
+  const count = useSignal(1);
+  const maxPayloadSize = useSignal(0);
+  const messages = useSignal(null);
+  const error = useSignal(null);
+  const handleFetch = async () => {
+    isLoading.value = true;
+    error.value = null;
+    messages.value = null;
+    try {
+      const msgs = await apiService.getQueueMessages(item.vhost, item.name, {
+        count: Number(count.value),
+        ackmode: ackMode.value,
+        encoding: encoding.value,
+        truncate: Number(maxPayloadSize.value),
+      });
+      messages.value = msgs;
+    } catch (e) {
+      console.error('Error fetching messages:', e);
+      error.value = e.message;
+      addToast(`Error fetching messages: ${e.message}`, 'error');
+    } finally {
+      isLoading.value = false;
+    }
+  };
+  const resetState = () => {
+    ackMode.value = 'ack_requeue_true';
+    encoding.value = 'auto';
+    count.value = 1;
+    maxPayloadSize.value = 0;
+    messages.value = null;
+    error.value = null;
+    isLoading.value = false;
+  };
+  const id = `get-message-modal-${item.name.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+  return html`
+    <input type="checkbox" id=${id} class="modal-toggle" ref=${el => (inputRef.current = el)} />
+    <div class="modal">
+      <div class="modal-box w-[90vw] h-[90vh] max-w-none flex flex-col">
+        <label for=${id} class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+        <h3 class="font-bold text-lg mb-4">Get Messages from ${item.name}</h3>        
+        <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <label class="select w-full">
+            <span class="label">Ack Mode</span>
+            <select class="select select-bordered" value=${ackMode.value} onChange=${e => (ackMode.value = e.target.value)} disabled=${isLoading.value}>
+              <option value="ack_requeue_true">Ack & Requeue</option>
+              <option value="ack_requeue_false">Ack & Remove</option>
+            </select>
+          </label>
+          <label class="select w-full">
+            <span class="label">Encoding</span>
+            <select class="select select-bordered" value=${encoding.value} onChange=${e => (encoding.value = e.target.value)} disabled=${isLoading.value}>
+              <option value="auto">Auto (string)</option>
+              <option value="base64">Base64</option>
+            </select>
+          </label>
+          <label class="input w-full">
+            <span class="label">Count</span>
+            <input type="number" class="input input-bordered" min="1" value=${count.value} onInput=${e => (count.value = e.target.value)} disabled=${isLoading.value} />
+          </div>
+          <label class="input w-full">
+            <span class="label">Truncate</span>
+            <input
+              type="number"
+              class="input input-bordered"
+              min="0"
+              placeholder="0 (no limit)"
+              value=${maxPayloadSize.value}
+              onInput=${e => (maxPayloadSize.value = e.target.value)}
+              disabled=${isLoading.value}
+            />
+            <span class="label">Bytes</span>
+          </div>
+        </div>
+        <div class="flex-grow overflow-auto mb-4">
+        ${error.value && html`<div class="alert alert-error mb-4">${error.value}</div>`}
+        ${isLoading.value && html`<div class="flex justify-center mb-4"><span class="loading loading-spinner"></span></div>`}
+        ${messages.value && messages.value.length > 0 && html`
+          <div class="space-y-4 mb-4">
+            ${messages.value.map((msg, index) => html`
+              <div class="border border-base-300 bg-base-200 rounded-lg mb-2">
+                <label class="collapse m-0">
+                  <input type="checkbox" class="hidden" />                  
+                  <div class="collapse-title px-4 py-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div><b>Message</b>: ${index + 1} of ${msg.message_count}</div>
+                    <div><b>Exchange</b>: <span>${msg.exchange}</span></div>
+                    <div><b>Routing Key</b>: <span>${msg.routing_key}</span></div>
+                    <div><b>Properties</b>: <i class="mdi mdi-chevron-down"></i><span></span></div>
+                    <div><b>Redelivered</b>: <span>${msg.redelivered ? '✔' : '✖'}</span></div>
+                    <div><b>Size</b>: <span>${msg.payload_bytes != null ? ByteRender(msg.payload_bytes) : ''}</span></div>
+                  </div>
+                  <div class="collapse-content overflow-auto">
+                    <div class="px-2">
+                      <${ExpandedRecordCell} value=${msg.properties ? ({ ...msg.properties, ...(msg.properties.timestamp ? { timestamp: TimestampRender(msg.properties.timestamp) } : {}) }) : {}} />
+                    </div>
+                  </div>
+                </label>
+                <div class="p-4 space-y-2 overflow-auto bg-base-100">
+                  <p><strong>Payload:</strong></p>
+                  <div class="relative">
+                    <textarea readonly class="textarea textarea-bordered w-full h-32 mb-2">${msg.payload}</textarea>
+                    <button class="btn btn-ghost btn-xs absolute top-2 right-2" onClick=${async () => { try { await navigator.clipboard.writeText(msg.payload); addToast('Copied payload', 'success'); } catch (err) { addToast('Copy failed', 'error'); } }} title="Copy Payload">
+                      <i class="mdi mdi-content-copy"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `)}
+          </div>
+        `}
+        ${messages.value && messages.value.length === 0 && !isLoading.value && html`<p>No messages returned.</p>`}
+        </div>
+        <div class="modal-action mt-auto">
+          <button class="btn" onClick=${() => { inputRef.current.checked = false; resetState(); }}>Close</button>
+          <button class="btn btn-primary" disabled=${isLoading.value} onClick=${handleFetch}>Get</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-sm btn-primary" onClick=${() => { resetState(); inputRef.current.checked = true; }} title="Get Messages">
+      <i class="mdi mdi-download"></i>
     </button>
   `;
 }
@@ -222,7 +352,7 @@ export function GroupMessagesCell({ item }) {
 }
 
 export function NameCell({ value }) {
-  const copyToClipboard = async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(value); addToast(`Copied: ${value}`, 'success'); } catch (_) { addToast(`Copy failed`, 'error'); } };
+  const copyToClipboard = async e => { e.stopPropagation(); try { await navigator.clipboard.writeText(value); addToast(`Copied!`, 'success'); } catch (_) { addToast(`Copy failed`, 'error'); } };
   return html`
     <div class="flex items-center">
       <span class="flex-1 min-w-0 truncate" title=${value}>${value}</span>
