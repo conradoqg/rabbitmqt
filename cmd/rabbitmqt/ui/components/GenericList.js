@@ -434,7 +434,7 @@ export default function GenericList({
     page.value = 1;
     fetchList()
       .then(() => { lastVhost.value = selectedVhost.value; })
-      .catch(() => {});
+      .catch(() => { });
     updateURL();
   }, [activeTab.value, selectedVhost.value, vhosts.value]);
   // Handler for changing items per page
@@ -706,11 +706,16 @@ export default function GenericList({
           </div>
         </div>
       `}
-      ${data.value && data.value.items && data.value.items.length === 0 && html`
+      ${loading.value && html`
+        <div class="space-y-2 p-4">
+          ${[1, 2, 3, 4, 5].map(() => html`<div class="h-4 bg-base-200 rounded animate-pulse"></div>`)}
+        </div>
+      `}
+      ${!loading.value && data.value && data.value.items && data.value.items.length === 0 && html`
         <p class="text-center">No ${route} found.</p>
       `}
-      ${!data.value && html`
-        <p class="text-center">No ${route} data. Select a vhost and refresh.</p>
+      ${!loading.value && !data.value && html`
+        <p class="text-center">No ${route} data. Click Connect.</p>
       `}
     </div>
   `;

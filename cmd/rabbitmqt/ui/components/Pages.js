@@ -76,6 +76,11 @@ export function Overview() {
         </button>
       </div>
       ${error.value && html`<div class="alert alert-error mb-4">${error.value}</div>`}
+      ${loading.value && html`
+        <div class="space-y-2 p-4">
+          ${[1,2,3,4,5].map(() => html`<div class="h-4 bg-base-200 rounded animate-pulse"></div>`) }
+        </div>
+      `}
       ${!loading.value && !error.value && data && html`
         <div class="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4 mb-4">
           <div class="stats stats-vertical lg:stats-horizontal shadow">
