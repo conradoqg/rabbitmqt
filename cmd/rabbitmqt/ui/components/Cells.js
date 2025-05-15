@@ -204,7 +204,7 @@ export function GetMessagesActionCell({ item }) {
         </div>
       </div>
     </div>
-    <button class="btn btn-sm btn-primary" onClick=${() => { resetState(); inputRef.current.checked = true; }} title="Get Messages">
+    <button class="btn btn-sm btn-accent" onClick=${() => { resetState(); inputRef.current.checked = true; }} title="Get Messages">
       <i class="mdi mdi-download"></i>
     </button>
   `;

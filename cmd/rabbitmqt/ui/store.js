@@ -21,7 +21,7 @@ export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
-export const VERSION = '1.0.4';
+export const VERSION = '1.0.5';
 
 // Navigation state
 export const activeTab = signal('overview');

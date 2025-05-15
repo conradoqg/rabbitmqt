@@ -16,6 +16,7 @@
   <!-- Override browser/1Password autofill background/color for consistent theming -->
   <style>
     /* Autofill from browser */
+    /* Override autofill (browser and 1Password) for consistent theming */
     input:-webkit-autofill,
     textarea:-webkit-autofill,
     select:-webkit-autofill,
@@ -35,11 +36,16 @@
     input[data-com-onepassword-filled]:focus,
     textarea[data-com-onepassword-filled]:focus,
     select[data-com-onepassword-filled]:focus {
+      /* Text colors */
       -webkit-text-fill-color: inherit !important;
+      color: inherit !important;
+      /* Background override */
       transition: background-color 9999s ease-in-out 0s !important;
       background-color: inherit !important;
       background-image: none !important;
+      /* Remove any autofill shadows */
       box-shadow: none !important;
+      -webkit-box-shadow: none !important;
     }
   </style>
   <script type="importmap">
