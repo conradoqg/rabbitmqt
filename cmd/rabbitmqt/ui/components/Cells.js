@@ -35,7 +35,7 @@ export function ArrayCell({ value }) {
   return html`<span class="cursor-help" title=${title}>${items.length} <i class="mdi mdi-information"></i></span>`;
 }
 
-export function ConfirmQueueCell({ item }) {
+export function QueuePurgeActionCell({ item }) {
   const inputVal = useSignal('');
   const isLoading = useSignal(false);
   const inputRef = useRef(null);
@@ -75,14 +75,14 @@ export function ConfirmQueueCell({ item }) {
         </div>
       </div>
     </div>
-    <button class="btn btn-sm btn-warning" disabled=${isLoading.value} onClick=${() => { inputVal.value = ''; if (inputRef.current) inputRef.current.checked = true }}>
+    <button class="btn btn-sm btn-warning" disabled=${isLoading.value} onClick=${() => { inputVal.value = ''; if (inputRef.current) inputRef.current.checked = true }} title="Purge Queue Messages">
       ${isLoading.value ? html`<span class="loading loading-spinner"></span>` : html`<i class="mdi mdi-delete-sweep"></i>`}
     </button>
   `;
 }
 
 // Cell component to fetch and display messages from a queue
-export function GetMessageCell({ item }) {
+export function GetMessagesActionCell({ item }) {
   const inputRef = useRef(null);
   const isLoading = useSignal(false);
   const ackMode = useSignal('ack_requeue_true');
