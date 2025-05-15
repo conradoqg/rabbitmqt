@@ -108,8 +108,8 @@ export function Overview() {
   })}
           </div>
         </div>
-        <div class="flex flex-wrap gap-4 mb-4">
-          <div class="w-full md:w-1/2 lg:w-1/3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          <div>
             <h2 class="text-xl font-semibold mb-2">General Info</h2>
             <div class="overflow-x-auto">
               <table class="table table-xs table-zebra table-pin-rows w-full">
@@ -134,7 +134,37 @@ export function Overview() {
               </table>
             </div>
           </div>
-          <div class="w-full md:w-1/2 lg:w-1/3">
+          <div>
+            <h2 class="text-xl font-semibold mb-2">Message Stats</h2>
+            <div class="overflow-x-auto">
+              <table class="table table-xs table-zebra table-pin-rows w-full">
+                <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
+                <tbody>
+                  ${Object.entries(data.message_stats || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
+        const details = data.message_stats[`${key}_details`];
+        const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
+        return html`<tr class="hover:bg-base-200"><td>${key}</td><td>${NumberRender(val)}</td><td>${RateRender(rate)}</td></tr>`;
+      })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold mb-2">Churn Rates</h2>
+            <div class="overflow-x-auto">
+              <table class="table table-xs table-zebra table-pin-rows w-full">
+                <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
+                <tbody>
+                  ${Object.entries(data.churn_rates || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
+        const details = data.churn_rates[`${key}_details`];
+        const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
+        return html`<tr class="hover:bg-base-200"><td>${key}</td><td>${NumberRender(val)}</td><td>${RateRender(rate)}</td></tr>`;
+      })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
             <h2 class="text-xl font-semibold mb-2">Sample Retention Policies</h2>
             <div class="overflow-x-auto">
               <table class="table table-xs table-zebra table-pin-rows w-full">
@@ -156,38 +186,8 @@ export function Overview() {
               </div>
             `}
           </div>
-          <div class="w-full md:w-1/2 lg:w-1/3">
-            <h2 class="text-xl font-semibold mb-2">Message Stats</h2>
-            <div class="overflow-x-auto">
-              <table class="table table-xs table-zebra table-pin-rows w-full">
-                <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
-                <tbody>
-                  ${Object.entries(data.message_stats || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
-        const details = data.message_stats[`${key}_details`];
-        const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
-        return html`<tr class="hover:bg-base-200"><td>${key}</td><td>${NumberRender(val)}</td><td>${RateRender(rate)}</td></tr>`;
-      })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="w-full md:w-1/2 lg:w-1/3">
-            <h2 class="text-xl font-semibold mb-2">Churn Rates</h2>
-            <div class="overflow-x-auto">
-              <table class="table table-xs table-zebra table-pin-rows w-full">
-                <thead><tr><th>Metric</th><th>Count</th><th>Rate</th></tr></thead>
-                <tbody>
-                  ${Object.entries(data.churn_rates || {}).filter(([key]) => !key.endsWith('_details')).map(([key, val]) => {
-        const details = data.churn_rates[`${key}_details`];
-        const rate = details && details.rate != null ? details.rate.toFixed(2) : '';
-        return html`<tr class="hover:bg-base-200"><td>${key}</td><td>${NumberRender(val)}</td><td>${RateRender(rate)}</td></tr>`;
-      })}
-                </tbody>
-              </table>
-            </div>
-          </div>
           ${listeners.length > 0 && html`
-            <div class="w-full md:w-1/2 lg:w-1/3">
+            <div>
               <h2 class="text-xl font-semibold mb-2">Listeners</h2>
               <div class="overflow-x-auto">
                 <table class="table table-xs table-zebra table-pin-rows w-full">
