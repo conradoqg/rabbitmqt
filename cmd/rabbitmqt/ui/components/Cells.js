@@ -120,6 +120,18 @@ export function GetMessagesActionCell({ item }) {
     error.value = null;
     isLoading.value = false;
   };
+  const handleDownload = () => {
+    if (!messages.value || messages.value.length === 0) return;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const blob = new Blob([JSON.stringify(messages.value, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${item.name}-messages-${timestamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const id = `get-message-modal-${item.name.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
   return html`
     <input type="checkbox" id=${id} class="modal-toggle" ref=${el => (inputRef.current = el)} />
@@ -199,8 +211,9 @@ export function GetMessagesActionCell({ item }) {
         ${messages.value && messages.value.length === 0 && !isLoading.value && html`<p>No messages returned.</p>`}
         </div>
         <div class="modal-action mt-auto">
-          <button class="btn" onClick=${() => { inputRef.current.checked = false; resetState(); }}>Close</button>
           <button class="btn btn-primary" disabled=${isLoading.value} onClick=${handleFetch}>Get</button>
+          <button class="btn btn-secondary" disabled=${!(messages.value && messages.value.length > 0)} onClick=${handleDownload}>Download JSON</button>
+          <button class="btn" onClick=${() => { inputRef.current.checked = false; resetState(); }}>Close</button>
         </div>
       </div>
     </div>
