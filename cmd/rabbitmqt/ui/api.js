@@ -160,6 +160,45 @@ export default class ApiService {
   }
 
   /**
+   * Fetch bindings for a given exchange.
+   * @param {string} vhost - Virtual host name.
+   * @param {string} exchangeName - Name of the exchange.
+   * @returns {Promise<any[]>} - Array of binding objects where this exchange is the source.
+   */
+  async getExchangeBindings(vhost, exchangeName) {
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    const res = await this.proxyFetch(`/api/bindings/${encVh}`);
+    const allBindings = await res.json();
+    return allBindings.filter(b => b.source === exchangeName);
+  }
+
+  /**
+   * Fetch a single queue's details (including consumer_details).
+   * @param {string} vhost - Virtual host name.
+   * @param {string} queueName - Name of the queue.
+   * @returns {Promise<any>} - Queue object.
+   */
+  async getQueue(vhost, queueName) {
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    const encName = encodeURIComponent(queueName);
+    const res = await this.proxyFetch(`/api/queues/${encVh}/${encName}`);
+    return res.json();
+  }
+
+  /**
+   * Fetch bindings for a given queue (inbound bindings where destination matches this queue).
+   * @param {string} vhost - Virtual host name.
+   * @param {string} queueName - Name of the queue.
+   * @returns {Promise<any[]>} - Array of binding objects for the queue.
+   */
+  async getQueueBindings(vhost, queueName) {
+    const encVh = vhost === '/' ? '%252F' : encodeURIComponent(vhost);
+    const res = await this.proxyFetch(`/api/bindings/${encVh}`);
+    const allBindings = await res.json();
+    return allBindings.filter(b => b.destination_type === 'queue' && b.destination === queueName);
+  }
+
+  /**
    * Fetch a paginated, sorted, filtered list for a given resource.
    * @param {string} route - Resource endpoint (e.g., 'queues').
    * @param {Object} [opts] - Query options.

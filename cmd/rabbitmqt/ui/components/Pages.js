@@ -33,6 +33,8 @@ import {
   ConnectionStateCell,
   ChannelCell,
   ExpandedRecordCell,
+  ExchangeBindingsCell,
+  QueueDetailsCell,
   VhostStateCell
 } from './Cells.js';
 // Overview page moved into Pages.js
@@ -404,6 +406,7 @@ export function Exchanges() {
       defaultSortDir="desc"
       defaultSortField="message_stats.publish_in_details.rate"
       columns=${exchangesColumns}
+      rowExpandRenderer=${item => html`<${ExchangeBindingsCell} item=${item} />`}
     />`;
 }
 
@@ -477,6 +480,7 @@ export function Queues() {
       defaultSortDir="desc"
       defaultSortField=${fastMode.value ? "messages" : "message_stats.deliver_details.rate"}
       columns=${queuesColumns}
+      rowExpandRenderer=${item => html`<${QueueDetailsCell} item=${item} />`}
     />`;
 }
 

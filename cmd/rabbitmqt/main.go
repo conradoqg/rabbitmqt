@@ -174,7 +174,7 @@ func main() {
 // optionally followed by additional path segments.
 func isValidURL(inputURL string) bool {
 	// Define a regex pattern that covers the variable domain, sub-paths, and specific API endpoints
-	pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels|policies|vhost-limits)(/.*)?`
+	pattern := `^(/[^/]+)*/api/(overview|vhosts|exchanges|queues|connections|channels|policies|vhost-limits|bindings)(/.*)?`
 
 	// Compile the regular expression
 	re := regexp.MustCompile(pattern)

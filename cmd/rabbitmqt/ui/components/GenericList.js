@@ -134,7 +134,15 @@ export default function GenericList({
   clientSide = false,
   // pagination: if true, show pagination UI and paginate results (server- or client-side)
   pagination = true
+  , rowExpandRenderer
 }) {
+  const hasExpander = typeof rowExpandRenderer === 'function';
+  const expanded = useSignal({});
+  const getItemKey = item => `${item.vhost || ''}:${item.name || ''}`;
+  const toggleExpand = item => {
+    const k = getItemKey(item);
+    expanded.value = { ...expanded.value, [k]: !expanded.value[k] };
+  };
   const data = useSignal(null);
   const loading = useSignal(false);
   const error = useSignal(null);
@@ -632,6 +640,7 @@ export default function GenericList({
                     <thead>
                       ${showHeaderGroups && html`
                         <tr>
+                          ${hasExpander && html`<th class="sticky top-0 bg-base-100 z-20 border-l border-l-base-300 border-r border-r-base-300"></th>`}
                           ${headerGroups.map(hg => html`
                             <th
                               colspan=${hg.span}
@@ -643,6 +652,7 @@ export default function GenericList({
                         </tr>
                       `}
                       <tr>
+                        ${hasExpander && html`<th class="sticky top-7 bg-base-100 z-10"></th>`}
                         ${filteredColumns.map(key => {
           const colMeta = columnsMap[key] || {};
           // Align and width classes; use width class from column metadata if provided
@@ -664,26 +674,41 @@ export default function GenericList({
                       </tr>
                     </thead>
                     <tbody>
-                      ${items.map(item => html`
-                        <tr class="hover:bg-base-200">
-                          ${filteredColumns.map(key => {
-          const colMeta = columnsMap[key] || {};
-          const val = getValueByPath(item, key);
-          // Align and width classes; use width class from column metadata if provided
-          // Apply text alignment: use configured align or default to left
-          const baseClass = colMeta.align ? `text-${colMeta.align}` : 'text-left';
-          const widthClass = colMeta.width ? ` ${colMeta.width}` : '';
-          const alignClass = `${baseClass}${widthClass}`;
-          if (colMeta.component) {
-            return html`<td class=${alignClass}><${colMeta.component} value=${val} item=${item} /></td>`;
-          }
-          if (colMeta.render) {
-            return html`<td class=${alignClass}>${colMeta.render(val, item)}</td>`;
-          }
-          return html`<td class=${alignClass}>${renderValue(val)}</td>`;
-        })}
-                        </tr>
-                      `)}
+                      ${items.flatMap(item => {
+                        const key = getItemKey(item);
+                        return [
+                          html`
+                            <tr class="hover:bg-base-200">
+                              ${hasExpander && html`<td class="text-center"><button class="btn btn-xs" onClick=${() => toggleExpand(item)}>${expanded.value[key] ? '−' : '+'}</button></td>`}
+                              ${filteredColumns.map(colKey => {
+                                const colMeta = columnsMap[colKey] || {};
+                                const val = getValueByPath(item, colKey);
+                                const baseClass = colMeta.align ? `text-${colMeta.align}` : 'text-left';
+                                const widthClass = colMeta.width ? ` ${colMeta.width}` : '';
+                                const alignClass = `${baseClass}${widthClass}`;
+                                if (colMeta.component) {
+                                  return html`<td class=${alignClass}><${colMeta.component} value=${val} item=${item} /></td>`;
+                                }
+                                if (colMeta.render) {
+                                  return html`<td class=${alignClass}>${colMeta.render(val, item)}</td>`;
+                                }
+                                return html`<td class=${alignClass}>${renderValue(val)}</td>`;
+                              })}
+                            </tr>
+                          `,
+                          hasExpander && expanded.value[key] && html`
+                            <tr class="bg-base-200">
+                              <td colspan=${filteredColumns.length + 1} class="p-0">
+                                <div class="p-4">
+                                  <div class="inline-block">
+                                    ${rowExpandRenderer(item)}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          `
+                        ];
+                      })}
                     </tbody>
                   </table>
                 `;

@@ -6,7 +6,7 @@
  */
 import { html } from 'htm/preact';
 import { useSignal } from '@preact/signals';
-import { useRef } from 'preact/hooks';
+import { useRef, useEffect } from 'preact/hooks';
 import { addToast, purgeQueue, fastMode, apiService } from '../store.js';
 import numberal from 'numeral';
 import dayjs from 'dayjs';
@@ -519,6 +519,126 @@ export function ExpandedRecordCell({ value }) {
   };
   const lines = renderLines(value, 0);
   return html`<div class="flex flex-col">${lines}</div>`;
+}
+
+export function ExchangeBindingsCell({ item }) {
+  const bindings = useSignal(null);
+  const isLoading = useSignal(false);
+  const error = useSignal(null);
+
+  useEffect(() => {
+    isLoading.value = true;
+    apiService.getExchangeBindings(item.vhost, item.name)
+      .then(data => { bindings.value = data; })
+      .catch(e => { error.value = e.message; })
+      .finally(() => { isLoading.value = false; });
+  }, []);
+
+  return html`
+    ${isLoading.value && html`<div><span class="loading loading-spinner"></span></div>`}
+    ${error.value && html`<div class="alert alert-error p-1 text-xs">${error.value}</div>`}
+    ${bindings.value && html`
+      <div class="overflow-auto p-1">
+        <table class="table table-compact w-full">
+          <thead>
+            <tr>
+              <th>Destination</th>
+              <th>Type</th>
+              <th>Routing Key</th>
+              <th>Arguments</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${bindings.value.length > 0
+              ? bindings.value.map(b => html`
+                  <tr>
+                    <td>${b.destination}</td>
+                    <td>${b.destination_type}</td>
+                    <td>${b.routing_key}</td>
+                    <td><${ExpandedRecordCell} value=${b.arguments} /></td>
+                  </tr>
+                `)
+              : html`<tr><td colspan="4" class="text-center">No bindings</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `}
+  `;
+}
+
+/**
+ * Queue details expander: shows inbound bindings and consumers for a queue.
+ */
+export function QueueDetailsCell({ item }) {
+  const bindings = useSignal(null);
+  const details = useSignal(null);
+  const isLoading = useSignal(true);
+  const error = useSignal(null);
+
+  useEffect(() => {
+    isLoading.value = true;
+    Promise.all([
+      apiService.getQueueBindings(item.vhost, item.name),
+      apiService.getQueue(item.vhost, item.name)
+    ])
+      .then(([b, d]) => {
+        bindings.value = b;
+        details.value = d;
+      })
+      .catch(e => { error.value = e.message; })
+      .finally(() => { isLoading.value = false; });
+  }, []);
+
+  if (isLoading.value) {
+    return html`<div class="p-2"><span class="loading loading-spinner"></span></div>`;
+  }
+  if (error.value) {
+    return html`<div class="alert alert-error m-2">${error.value}</div>`;
+  }
+  return html`
+    <div class="overflow-auto p-1">
+      <table class="table table-compact w-full mb-1">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Routing Key</th>
+            <th>Arguments</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${bindings.value && bindings.value.length > 0
+            ? bindings.value.map(b => html`
+                <tr>
+                  <td>${b.source || '(default)'}</td>
+                  <td>${b.routing_key != null ? b.routing_key : ''}</td>
+                  <td><${ExpandedRecordCell} value=${b.arguments} /></td>
+                </tr>
+              `)
+            : html`<tr><td colspan="3" class="text-center">No bindings</td></tr>`}
+        </tbody>
+      </table>
+      <table class="table table-compact w-full">
+        <thead>
+          <tr>
+            <th>Connection</th>
+            <th>Channel ID</th>
+            <th>Consumer Tag</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${details.value.consumer_details && details.value.consumer_details.length > 0
+            ? details.value.consumer_details.map(c => html`
+              <tr>
+                <td>${c.channel_details.connection_name}</td>
+                <td>${c.channel_details.channel_id}</td>
+                <td>${c.consumer_tag}</td>
+              </tr>
+            `)
+            : html`<tr><td colspan="3" class="text-center">No consumers</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 function createNumeralRender(format, prefix = '', suffix = '') {
