@@ -54,6 +54,8 @@ export const overview = {
 export const vhosts = signal([]);
 // Global selected vhost for all views
 export const selectedVhost = signal('all');
+// Incremented on each new Connect to trigger data reset in UI components
+export const connectionId = signal(0);
 // Loading state for fetching vhosts (Connect button)
 export const vhostsLoading = signal(false);
 
@@ -135,10 +137,15 @@ export async function fetchData() {
     overview.error.value = 'URL and username are required';
     return;
   }
+  // bump connectionId to signal a new server connection
+  connectionId.value++;
   batch(() => {
     vhostsLoading.value = true;
     overview.error.value = null;
     overview.data.value = null;
+    // clear previous vhosts and reset selected virtual host on new connection
+    vhosts.value = [];
+    selectedVhost.value = 'all';
   });
   try {
     // Always use fast mode for fetching vhost names first (only names needed)

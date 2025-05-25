@@ -1,7 +1,7 @@
 import { html } from 'htm/preact';
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { vhosts, url, username, fetchList as apiFetchList, fetchAll as apiFetchAll, PAGE_SIZE, activeTab, addToast, fastMode, selectedVhost } from '../store.js';
+import { vhosts, url, username, fetchList as apiFetchList, fetchAll as apiFetchAll, PAGE_SIZE, activeTab, addToast, fastMode, selectedVhost, connectionId } from '../store.js';
 // Inline Pagination component
 /**
  * Pagination component: renders pagination controls including:
@@ -433,6 +433,19 @@ export default function GenericList({
 
   // Reload data when this tab becomes active and a vhost is selected
   const lastVhost = useSignal(null);
+  // Reset and refetch when a new connection is made
+  useEffect(() => {
+    data.value = null;
+    error.value = null;
+    page.value = 1;
+    lastVhost.value = null;
+    if (activeTab.value === route && vhosts.value.length > 0) {
+      fetchList()
+        .then(() => { lastVhost.value = selectedVhost.value; })
+        .catch(() => {});
+      updateURL();
+    }
+  }, [connectionId.value]);
   useEffect(() => {
     if (activeTab.value !== route) return;
     // wait until vhosts list is populated
