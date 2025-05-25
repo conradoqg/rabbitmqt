@@ -22,7 +22,7 @@ import (
 var embeddedUI embed.FS
 
 // Version indicates the application version.
-const Version = "1.0.6"
+const Version = "1.0.7"
 
 // proxyRawHandler forwards incoming HTTP requests under /proxy/ to the RabbitMQ HTTP API,
 // preserving the HTTP method, headers, body, and query parameters.

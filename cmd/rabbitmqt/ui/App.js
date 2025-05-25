@@ -32,6 +32,15 @@ export default function App() {
       </section>
       <footer class="flex items-center justify-center gap-2 text-xs text-gray-500 py-2">
         <span>Made with <i class="mdi mdi-heart text-red-500"></i> by Conrado</span>
+        <a
+          href="https://github.com/conradoqg/rabbitmqt"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-ghost btn-xs p-1"
+          title="GitHub"
+        >
+          <i class="mdi mdi-github text-xs"></i>
+        </a>
         <button
           class="btn btn-ghost btn-xs p-1"
           type="button"
