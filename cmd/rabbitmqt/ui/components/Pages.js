@@ -80,7 +80,7 @@ export function Overview() {
       ${error.value && html`<div class="alert alert-error mb-4">${error.value}</div>`}
       ${loading.value && html`
         <div class="space-y-2 p-4">
-          ${[1,2,3,4,5].map(() => html`<div class="h-4 bg-base-200 rounded animate-pulse"></div>`) }
+          ${[1, 2, 3, 4, 5].map(() => html`<div class="h-4 bg-base-200 rounded animate-pulse"></div>`)}
         </div>
       `}
       ${!loading.value && !error.value && data && html`
@@ -267,8 +267,8 @@ export function Vhosts() {
 }
 // Connections list page
 const connectionsColumns = [
-  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
-  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
   { group: 'General', field: 'user_provided_name', shortName: 'User Provided Name', hideInFastMode: true, component: NameCell, width: 'max-w-[300px]' },
   { group: 'General', field: 'user', shortName: 'User', component: NameCell, width: 'max-w-[150px]' },
   { group: 'General', field: 'type', shortName: 'Type', hideInFastMode: true },
@@ -329,8 +329,8 @@ export function Connections() {
 
 // Channels list page
 const channelsColumns = [
-  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
-  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
   { group: 'General', field: 'node', shortName: 'Node', component: NameCell, visible: false },
   { group: 'General', field: 'consumer_count', shortName: 'Consumers', render: NumberRender },
   { group: 'General', field: 'state', shortName: 'State', component: ChannelCell, align: 'center' },
@@ -380,8 +380,8 @@ export function Channels() {
 
 // Exchanges list page
 const exchangesColumns = [
-  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
-  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
   { group: 'Publish', field: 'message_stats', shortName: 'Stats', sortable: false, hideInFastMode: true, statsOf: true, component: GroupPublishCell },
   { group: 'Publish', field: 'message_stats.publish_in_details.rate', shortName: 'In', hideInFastMode: true, detailOf: true, render: RateRender },
   { group: 'Publish', field: 'message_stats.publish_out_details.rate', shortName: 'Out', hideInFastMode: true, detailOf: true, render: RateRender },
@@ -412,8 +412,8 @@ export function Exchanges() {
 
 // Queues list page
 const queuesColumns = [
-  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell, width: 'max-w-[150px]' },
-  { group: 'General', field: 'name', shortName: 'Name', component: NameCell, width: 'max-w-[300px]' },
+  { group: 'General', field: 'vhost', shortName: 'Vhost', component: NameCell },
+  { group: 'General', field: 'name', shortName: 'Name', component: NameCell },
   { group: 'General', field: 'state', shortName: 'State', component: QueueStateCell },
   { group: 'General', field: 'node', shortName: 'Node', visible: false },
   { group: 'General', field: 'type', shortName: 'Type' },
