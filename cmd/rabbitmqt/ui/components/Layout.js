@@ -160,12 +160,15 @@ export function Toasts() {
         <div class="toast">
           <div class=${`
             alert
-            ${t.type === 'error' ? 'alert-error' : t.type === 'success' ? 'alert-success' : 'alert-info'}
+            ${t.type === 'error' ? 'alert-error'
+      : t.type === 'warning' ? 'alert-warning'
+        : t.type === 'success' ? 'alert-success'
+          : 'alert-info'}
           `}>
-            <span>${t.message}</span>
-          </div>
-        </div>
-      `)}
+  <span>${t.message}</span>
+          </div >
+        </div >
+  `)}
     </div>
   `;
 }

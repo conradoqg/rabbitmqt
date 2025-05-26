@@ -17,5 +17,19 @@
             },
             "console": "integratedTerminal"
         },
+        {
+            "name": "Launch Package (With Delay)",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/cmd/rabbitmqt/",
+            "env": {
+                // Example: override proxy timeout for debugging
+                "PROXY_TIMEOUT": "5m",
+                "DEFAULT_URL": "http://localhost:15672",
+                "PROXY_TEST_DELAY": "35s"
+            },
+            "console": "integratedTerminal"
+        },
     ]
 }

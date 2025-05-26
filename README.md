@@ -103,6 +103,7 @@ docker run -p 8080:8080 \
 ## Configuration
 - `DEFAULT_URL`: Default RabbitMQ HTTP API base URL injected into the UI (`%%DEFAULT_URL%%` placeholder).  
 - `PROXY_TIMEOUT`: HTTP proxy timeout (Go `time.Duration` format, e.g., `120s`, `2m`). Defaults to 5 minutes.
+- `PROXY_TEST_DELAY`: HTTP proxy test delay (Go `time.Duration` format, e.g., `35s`). When set, the proxy delays each request by this duration before forwarding, useful for testing slow responses.
 - `CORS_ALLOW_ORIGIN`: Value for `Access-Control-Allow-Origin` header. Defaults to `*`.
 - `CORS_ALLOW_METHODS`: Value for `Access-Control-Allow-Methods` header. Defaults to `GET, POST, PUT, DELETE, PATCH, OPTIONS`.
 - `CORS_ALLOW_HEADERS`: Value for `Access-Control-Allow-Headers` header. Defaults to `Content-Type, Authorization`.

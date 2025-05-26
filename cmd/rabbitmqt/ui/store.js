@@ -21,7 +21,7 @@ export const url = signal(initialUrl);
 export const username = signal('');
 export const password = signal('');
 // Application version
-export const VERSION = '1.0.7';
+export const VERSION = '1.0.8';
 
 // Navigation state
 export const activeTab = signal('overview');
@@ -227,9 +227,32 @@ export const toasts = signal([]);
 export function addToast(message, type = 'info', duration = 5000) {
   const id = Date.now() + Math.random();
   toasts.value = [...toasts.value, { id, message, type }];
-  setTimeout(() => {
-    toasts.value = toasts.value.filter(t => t.id !== id);
-  }, duration);
+  if (duration > 0) {
+    setTimeout(() => {
+      toasts.value = toasts.value.filter(t => t.id !== id);
+    }, duration);
+  }
+  return id;
+}
+
+/**
+ * Update an existing toast notification.
+ * @param {number} id - The toast identifier.
+ * @param {string} message - The updated message.
+ * @param {'info'|'success'|'error'} [type] - Optional updated type.
+ */
+export function updateToast(id, message, type) {
+  toasts.value = toasts.value.map(t =>
+    t.id === id ? { ...t, message, type: type ?? t.type } : t
+  );
+}
+
+/**
+ * Remove a toast notification by id.
+ * @param {number} id - The toast identifier.
+ */
+export function removeToast(id) {
+  toasts.value = toasts.value.filter(t => t.id !== id);
 }
 
 /**
@@ -255,4 +278,36 @@ if (typeof window !== 'undefined') {
     }
   } catch { }
   document.documentElement.setAttribute('data-theme', theme.value);
+}
+// Intercept global fetch to track long-running requests and show toast notifications
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = async (...args) => {
+    const threshold = 10000; // 10 seconds
+    const startTime = Date.now();
+    let toastId = null;
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= threshold) {
+        const seconds = Math.floor(elapsed / 1000);
+        const message = `Request is taking ${seconds} seconds to complete...`;
+        if (toastId == null) {
+          toastId = addToast(message, 'warning', 0);
+        } else {
+          updateToast(toastId, message);
+        }
+      }
+    }, 1000);
+    try {
+      const response = await originalFetch(...args);
+      return response;
+    } catch (err) {
+      throw err;
+    } finally {
+      clearInterval(interval);
+      if (toastId != null) {
+        removeToast(toastId);
+      }
+    }
+  };
 }

@@ -22,7 +22,7 @@ import (
 var embeddedUI embed.FS
 
 // Version indicates the application version.
-const Version = "1.0.7"
+const Version = "1.0.8"
 
 // proxyRawHandler forwards incoming HTTP requests under /proxy/ to the RabbitMQ HTTP API,
 // preserving the HTTP method, headers, body, and query parameters.
@@ -31,6 +31,14 @@ func proxyRawHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
+	}
+	// Test delay for simulating slow upstream responses (configure via PROXY_TEST_DELAY env var)
+	if delayEnv := os.Getenv("PROXY_TEST_DELAY"); delayEnv != "" {
+		if d, err := time.ParseDuration(delayEnv); err == nil {
+			time.Sleep(d)
+		} else {
+			log.Printf("Invalid PROXY_TEST_DELAY '%s': %v", delayEnv, err)
+		}
 	}
 	// Determine target URL from raw request URI to preserve encoded characters (e.g., %2F).
 	raw := r.RequestURI
