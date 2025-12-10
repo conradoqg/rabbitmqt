@@ -1,32 +1,27 @@
 ###
-# Multi-stage Dockerfile for building and running the Go proxy server with embedded UI
+# Multi-stage Dockerfile
 ###
-# Use Go Alpine image to compile the server
 FROM golang:1.21-alpine AS builder
 
-WORKDIR /app
+WORKDIR /src
 
-# Copy go.mod, download dependencies
-COPY cmd/rabbitmqt/go.mod ./
+# Cache deps
+COPY go.mod ./
+# COPY go.sum ./ # Uncomment if go.sum exists
 RUN go mod download
 
-# Copy source code (including ui/ directory) and build
-COPY cmd/rabbitmqt/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o rabbitmqt .
+# Copy the full source
+COPY . .
 
-# Use a minimal Alpine image for runtime
-FROM alpine:3.18 AS runtime
+# Build static binary
+RUN GOCACHE=/src/.gocache CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /out/rabbitmqt ./cmd/rabbitmqt
 
-# Install CA certificates for HTTPS proxying
+FROM alpine:3.19 AS runtime
 RUN apk add --no-cache ca-certificates
-
 WORKDIR /app
+COPY --from=builder /out/rabbitmqt /app/rabbitmqt
+COPY config.example.yaml /app/config.yaml
 
-# Copy the compiled binary
-COPY --from=builder /app/rabbitmqt ./rabbitmqt
-
-# Expose default HTTP port
 EXPOSE 8080
-
-# Run the proxy server
-ENTRYPOINT ["./rabbitmqt"]
+ENTRYPOINT ["/app/rabbitmqt"]
+CMD []
