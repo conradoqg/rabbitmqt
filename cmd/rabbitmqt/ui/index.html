@@ -6,12 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>RabbitMQT</title>
   <link href="favicon.ico" rel="shortcut icon" type="image/x-icon" />
-  <!-- Tailwind CSS with DaisyUI plugin -->
-  <script type="module">
-    import daisyui from 'https://esm.sh/daisyui?min';
-    tailwind.config = { plugins: [daisyui] };
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS and DaisyUI via CDN -->
+  <!-- DaisyUI v5 compiled CSS (root path, no /dist/full.min.css) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5" type="text/css" />
+  <!-- Tailwind browser build (no global `tailwind` object) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.7"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
   <!-- Override browser/1Password autofill background/color for consistent theming -->
   <style>

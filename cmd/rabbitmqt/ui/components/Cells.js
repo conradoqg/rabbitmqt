@@ -64,7 +64,7 @@ export function QueuePurgeActionCell({ item }) {
         <p class="py-2">Type the queue name to confirm:</p>
         <input
           type="text"
-          class="input input-bordered w-full"
+          class="input w-full"
           placeholder="Queue name"
           value=${inputVal.value}
           onInput=${e => (inputVal.value = e.target.value)}
@@ -142,27 +142,27 @@ export function GetMessagesActionCell({ item }) {
         <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <label class="select w-full">
             <span class="label">Ack Mode</span>
-            <select class="select select-bordered" value=${ackMode.value} onChange=${e => (ackMode.value = e.target.value)} disabled=${isLoading.value}>
+            <select class="select" value=${ackMode.value} onChange=${e => (ackMode.value = e.target.value)} disabled=${isLoading.value}>
               <option value="ack_requeue_true">Ack & Requeue</option>
               <option value="ack_requeue_false">Ack & Remove</option>
             </select>
           </label>
           <label class="select w-full">
             <span class="label">Encoding</span>
-            <select class="select select-bordered" value=${encoding.value} onChange=${e => (encoding.value = e.target.value)} disabled=${isLoading.value}>
+            <select class="select" value=${encoding.value} onChange=${e => (encoding.value = e.target.value)} disabled=${isLoading.value}>
               <option value="auto">Auto (string)</option>
               <option value="base64">Base64</option>
             </select>
           </label>
           <label class="input w-full">
             <span class="label">Count</span>
-            <input type="number" class="input input-bordered" min="1" value=${count.value} onInput=${e => (count.value = e.target.value)} disabled=${isLoading.value} />
+            <input type="number" class="input" min="1" value=${count.value} onInput=${e => (count.value = e.target.value)} disabled=${isLoading.value} />
           </div>
           <label class="input w-full">
             <span class="label">Truncate</span>
             <input
               type="number"
-              class="input input-bordered"
+              class="input"
               min="0"
               placeholder="0 (no limit)"
               value=${maxPayloadSize.value}
@@ -198,7 +198,7 @@ export function GetMessagesActionCell({ item }) {
                 <div class="p-4 space-y-2 overflow-auto bg-base-100">
                   <p><strong>Payload:</strong></p>
                   <div class="relative">
-                    <textarea readonly class="textarea textarea-bordered w-full h-32 mb-2">${msg.payload}</textarea>
+                    <textarea readonly class="textarea w-full h-32 mb-2">${msg.payload}</textarea>
                     <button class="btn btn-ghost btn-xs absolute top-2 right-2" onClick=${async () => { try { await navigator.clipboard.writeText(msg.payload); addToast('Copied payload', 'success'); } catch (err) { addToast('Copy failed', 'error'); } }} title="Copy Payload">
                       <i class="mdi mdi-content-copy"></i>
                     </button>
@@ -458,7 +458,7 @@ export function VhostStateCell({ value }) {
 function GroupTable({ entries, cols, renderFn }) {
   const rows = Math.ceil(entries.length / cols);
   return html`
-    <table class="table table-xs table-compact table-auto text-xs">
+        <table class="table table-xs table-auto text-xs">
       <tbody>
         ${Array.from({ length: rows }).map((_, rowIndex) => {
     const slice = entries.slice(rowIndex * cols, rowIndex * cols + cols);
@@ -539,7 +539,7 @@ export function ExchangeBindingsCell({ item }) {
     ${error.value && html`<div class="alert alert-error p-1 text-xs">${error.value}</div>`}
     ${bindings.value && html`
       <div class="overflow-auto p-1">
-        <table class="table table-compact w-full">
+        <table class="table w-full">
           <thead>
             <tr>
               <th>Destination</th>
@@ -597,7 +597,7 @@ export function QueueDetailsCell({ item }) {
   }
   return html`
     <div class="overflow-auto p-1">
-      <table class="table table-compact w-full mb-1">
+      <table class="table w-full mb-1">
         <thead>
           <tr>
             <th>Source</th>
@@ -617,7 +617,7 @@ export function QueueDetailsCell({ item }) {
             : html`<tr><td colspan="3" class="text-center">No bindings</td></tr>`}
         </tbody>
       </table>
-      <table class="table table-compact w-full">
+      <table class="table w-full">
         <thead>
           <tr>
             <th>Connection</th>

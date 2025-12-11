@@ -80,7 +80,7 @@ function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage
         Next
       </button>
       <select
-        class="select select-bordered join-item"
+        class="select join-item"
         value=${itemsPerPage}
         onChange=${e => onChangeItemsPerPage(parseInt(e.target.value, 10))}
         disabled=${disabled}
@@ -91,7 +91,7 @@ function Pagination({ page, totalPages, prevPage, nextPage, goPage, itemsPerPage
         <option value="100">100</option>
       </select>
       <input
-        class="input input-bordered join-item w-16 text-center"
+        class="input join-item w-16 text-center"
         type="number"
         min="1"
         max=${totalPages}
@@ -498,7 +498,7 @@ export default function GenericList({
           <div class="flex items-center join">
             <div class="relative join-item flex-grow">
               <input
-                class="input input-bordered bg-base-200 w-full pr-8"
+                class="input bg-base-200 w-full pr-8"
                 type="text"
                 placeholder="Search"
                 value=${searchName.value}
@@ -530,7 +530,7 @@ export default function GenericList({
           </div>
           <div class="flex items-center join">
             <select
-              class="select select-bordered join-item"
+              class="select join-item"
               value=${sortField.value}
               onChange=${e => { sortField.value = e.target.value }}
               disabled=${loading.value}
@@ -546,7 +546,7 @@ export default function GenericList({
                 `)}
             </select>
             <select
-              class="select select-bordered join-item"
+              class="select join-item"
               style="width:auto"
               value=${sortDir.value}
               onChange=${e => { sortDir.value = e.target.value }}

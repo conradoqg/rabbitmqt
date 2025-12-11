@@ -20,7 +20,7 @@ export function NavBar() {
       <div class="flex-none flex flex-wrap items-center gap-2">
         <div class="relative">
           <input
-            class="input input-bordered bg-base-200 w-48 pr-8"
+            class="input bg-base-200 w-48 pr-8"
             id="url"
             type="text"
             placeholder="URL"
@@ -31,15 +31,17 @@ export function NavBar() {
           <button
             type="button"
             class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-          onClick=${() => (url.value = '')}
-          disabled=${vhostsLoading.value}
+            tabindex="-1"
+            aria-label="Clear URL"
+            onClick=${() => (url.value = '')}
+            disabled=${vhostsLoading.value}
           >
             <i class="mdi mdi-close"></i>
           </button>
         </div>
         <div class="relative">
           <input
-            class="input input-bordered bg-base-200 w-32 pr-8"
+            class="input bg-base-200 w-32 pr-8"
             id="username"
             type="text"
             placeholder="Username"
@@ -50,15 +52,17 @@ export function NavBar() {
           <button
             type="button"
             class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-          onClick=${() => (username.value = '')}
-          disabled=${vhostsLoading.value}
+            tabindex="-1"
+            aria-label="Clear username"
+            onClick=${() => (username.value = '')}
+            disabled=${vhostsLoading.value}
           >
             <i class="mdi mdi-close"></i>
           </button>
         </div>
         <div class="relative">
           <input
-            class="input input-bordered bg-base-200 w-32 pr-8"
+            class="input bg-base-200 w-32 pr-8"
             type="password"
             id="password"
             placeholder="Password"
@@ -69,8 +73,10 @@ export function NavBar() {
           <button
             type="button"
             class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
-          onClick=${() => (password.value = '')}
-          disabled=${vhostsLoading.value}
+            tabindex="-1"
+            aria-label="Clear password"
+            onClick=${() => (password.value = '')}
+            disabled=${vhostsLoading.value}
           >
             <i class="mdi mdi-close"></i>
           </button>
@@ -131,7 +137,7 @@ export function Tabs() {
       </div>
       <div class="flex items-center join">
         <select
-          class="select select-bordered join-item"
+          class="select join-item"
           value=${pendingVhost.value}
           onChange=${e => (pendingVhost.value = e.target.value)}
         >
