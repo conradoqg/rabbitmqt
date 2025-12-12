@@ -1,0 +1,5 @@
+# Placeholder config for rabbitmqt
+# Configured via Environment Variables:
+# - PROXY_TEST_DELAY
+# - PROXY_TIMEOUT
+# - DEFAULT_URL
